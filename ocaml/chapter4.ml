@@ -114,3 +114,19 @@ let append l1 l2 =
   in inner_append l2 (List.rev l1);;
 
 let result = append [1;2;3] [4;5;6];;
+
+(* ---------------------------------------- *)
+
+let merge l1 l2 =
+  let rec inner_merge buffer l1 l2 =
+    match l1, l2 with
+      (curr1 :: rest1), (curr2 :: rest2) ->
+        if curr1 < curr2 then
+          inner_merge (curr1 :: buffer) rest1 l2
+        else
+          inner_merge (curr2 :: buffer) l1 rest2
+    | [], (curr2 :: rest2) -> inner_merge (curr2 :: buffer) [] rest2
+    | (curr1 :: rest1), [] -> inner_merge (curr1 :: buffer) rest1 []
+    | [], [] -> buffer
+  in List.rev (inner_merge [] l1 l2);;
+        
