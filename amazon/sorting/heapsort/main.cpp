@@ -4,6 +4,10 @@
 #include <utility>
 using namespace std;
 
+// tree structure
+// arr[k] >= arr[2*k + 1]
+// arr[k] >= arr[2*k + 2]
+
 template<typename T>
 void heapsort(T arr[], size_t sz, int (*cmp_T)(const T&, const T&))
 {
@@ -59,6 +63,8 @@ void rebuild(T arr[], int first, int last, int (*cmp_T)(const T&, const T&))
 template<typename T>
 void build(T arr[], size_t sz, int (*cmp_T)(const T&, const T&))
 {
+   // can start building of a tree from second half of array
+   // cause of indices arr[size/2] has no childs in array
    for (int i = sz / 2 - 1; i >= 0; --i)
       rebuild(arr, i, sz - 1, cmp_T);
 }
