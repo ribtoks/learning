@@ -107,6 +107,7 @@ let rec append_old l1 l2 =
     curr :: rest -> curr :: append_old rest l2
   | [] -> l2;;
 
+
 let append l1 l2 =
   let rec inner_append l2 = function
       curr :: rest -> inner_append (curr :: l2) rest
