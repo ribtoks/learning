@@ -12,6 +12,10 @@ class Product < ActiveRecord::Base
     message: 'must be a URL for GIF, JPG or PNG image.'
   }
 
+  def self.latest
+    Product.order(:updated_at).last
+  end
+
   private
 
   def ensure_not_referenced_by_any_line_item

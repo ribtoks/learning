@@ -1,20 +1,25 @@
 <% if notice %>
-<p id="notice"><%= notice %></p>
+  <p id="notice"><%= notice %></p>
 <% end %>
 
 <% if @display_counter %>
-<p id="counter_message">Page was requested for <%= pluralize(@counter, 'time') %></p>
+  <p id="counter_message">Page was requested for <%= pluralize(@counter, 'time') %></p>
 <% end %>
 
 <h1>Your Pragmatic Catalog</h1>
-<% @products.each do |product| %>
-<div class="entry">
-  <%= image_tag(product.image_url) %>
-  <h3><%= product.title %></h3>
-  <%= sanitize(product.description) %>
-  <div class="price_line">
-    <span class="price"><%= number_to_currency(product.price) %></span>
-    <%= button_to 'Add to Cart', line_items_path(product_id: product) %>
-  </div>
-</div>
+<% cache ['store', Product.latest] do %>
+  <% @products.each do |product| %>
+    <% cache ['entry', product] do %>
+      <div class="entry">
+        <%= image_tag(product.image_url) %>
+        <h3><%= product.title %></h3>
+        <%= sanitize(product.description) %>
+        <div class="price_line">
+          <span class="price"><%= number_to_currency(product.price) %></span>
+          <%= button_to 'Add to Cart', line_items_path(product_id: product) %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
 <% end %>
+
