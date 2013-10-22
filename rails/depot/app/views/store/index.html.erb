@@ -1,6 +1,11 @@
 <% if notice %>
 <p id="notice"><%= notice %></p>
 <% end %>
+
+<% if @display_counter %>
+<p id="counter_message">Page was requested for <%= pluralize(@counter, 'time') %></p>
+<% end %>
+
 <h1>Your Pragmatic Catalog</h1>
 <% @products.each do |product| %>
 <div class="entry">
