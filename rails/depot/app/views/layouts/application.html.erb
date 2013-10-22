@@ -9,7 +9,8 @@
 <body class='<%= controller.controller_name %>'>
 
 <div id="banner">
-  <%= image_tag("logo.png") %> -<%= @page_title || "Pragmatic Bookshelf" %>
+  <%= image_tag("logo.png") %>
+  <%= @page_title || "Pragmatic Bookshelf" %>
 </div>
 <div id="columns">
   <div id="side">
@@ -19,6 +20,8 @@
       <li><a href="http://www..../news">News</a></li>
       <li><a href="http://www..../contact">Contact</a></li>
     </ul>
+
+    <p id="datetime"><%= Time.now.strftime("%d/%m/%Y %H:%M") %></p>
   </div>
   <div id="main"> <%= yield %> </div>
 </div> 
