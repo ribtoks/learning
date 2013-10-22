@@ -7,9 +7,24 @@ class CombineItemsInCart < ActiveRecord::Migration
         if quantity > 1
           cart.line_items.where(product_id: product_id).delete_all
 
-          cart.line_items.create(product_id: product_id, quantity: quantity)
+          item = cart.line_items.build(product_id: product_id)
+          item.quantity = quantity
+          item.save!
         end
       end
+    end
+  end
+
+  def down
+    LineItem.where("quantity>1").each do |line_item|
+
+      line_item.quantity.times do
+        LineItem.create(cart_id: line_item.cart_id,
+                        product_id: line_item.product_id,
+                        quantity: 1)
+      end
+
+      line_item.destroy
     end
   end
 end
