@@ -14,4 +14,6 @@
 
 <%= button_to 'Empty cart', cart, method: :delete,
     data: { confirm: 'Are you sure?' } %>
-<%= button_to "Checkout", new_order_path, method: :get %>
+<% unless @order %>
+  <%= button_to "Checkout", new_order_path, id:"checkout-button", method: :get %>
+<% end %>
