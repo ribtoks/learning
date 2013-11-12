@@ -6,7 +6,7 @@ type santa_counters = {
   elf_mutex : Semaphore.Semaphore.semaphore;
   mutex : Semaphore.Semaphore.semaphore;
 }
-val new_santa_counters : santa_counters
+val new_santa_counters : unit -> santa_counters
 val prepare_sleigh : unit -> unit
 val help_elves : unit -> unit
 val get_hitched : unit -> unit

@@ -8,7 +8,7 @@ type santa_counters = { mutable elves : int;
                         elf_mutex : Semaphore.semaphore;
                         mutex : Semaphore.semaphore };;
 
-let new_santa_counters = { elves = 0;
+let new_santa_counters () = { elves = 0;
                               reindeer = 0;
                               santa_sem = new Semaphore.semaphore 0;
                               reindeer_sem = new Semaphore.semaphore 0;
@@ -64,9 +64,10 @@ let elves_role_func c =
   c.mutex#signal 1;;
 
 
-let thread_wrapper f = 
+let c = new_santa_counters () in
+ let thread_wrapper f = 
   while true do
-    f new_santa_counters
+   f c
   done in 
   ignore (Thread.create thread_wrapper santa_role_func);
   ignore (Thread.create thread_wrapper reindeer_role_func);
