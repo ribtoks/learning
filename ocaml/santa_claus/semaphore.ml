@@ -22,6 +22,4 @@ module Semaphore = struct
         self#dec 1;
         Mutex.unlock sync
     end
-
-  let sem = new semaphore 0;
 end;;

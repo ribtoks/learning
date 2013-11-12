@@ -16,10 +16,10 @@ let new_santa_counters () = { elves = 0;
                               mutex = new Semaphore.semaphore 1 };;
 
 
-let prepare_sleigh () = printf "Prepare sleigh\n";;
-let help_elves () = printf "Help Elves\n";;
-let get_hitched () = printf "Get Hitched\n";;
-let get_help () = printf "Get Help\n";;
+let prepare_sleigh () = printf "Prepare sleigh\n"; flush stdout;;
+let help_elves () = printf "Help Elves\n"; flush stdout;;
+let get_hitched () = printf "Get Hitched\n"; flush stdout;;
+let get_help () = printf "Get Help\n"; flush stdout;;
 
 let santa_role_func c =
   c.santa_sem#wait;
@@ -65,11 +65,19 @@ let elves_role_func c =
 
 
 let c = new_santa_counters () in
- let thread_wrapper f = 
+let santa_loop () =
+  printf "Starting santa loop\n";
+  flush stdout;
   while true do
-   f c
-  done in 
-  ignore (Thread.create thread_wrapper santa_role_func);
-  ignore (Thread.create thread_wrapper reindeer_role_func);
-  ignore (Thread.create thread_wrapper elves_role_func )
-;;
+    santa_role_func c;
+  done
+in
+let santa_array = [| Thread.create santa_loop () |]
+and
+reindeer_array = Array.init 9 (fun _ -> Thread.create reindeer_role_func c)
+and
+elf_array = Array.init 20 (fun _ -> Thread.create elves_role_func c)
+in
+Array.iter Thread.join (Array.concat [santa_array; reindeer_array; elf_array]);;
+
+flush_all ()
