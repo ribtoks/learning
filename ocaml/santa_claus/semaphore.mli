@@ -11,4 +11,5 @@ module Semaphore :
         method signal : int -> unit
         method wait : unit
       end
+    val sem : semaphore
   end
