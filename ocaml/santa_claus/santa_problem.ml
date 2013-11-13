@@ -10,10 +10,10 @@ type santa_counters = { mutable elves : int;
 
 let new_santa_counters () = { elves = 0;
                               reindeer = 0;
-                              santa_sem = new Semaphore.semaphore 0;
-                              reindeer_sem = new Semaphore.semaphore 0;
-                              elf_mutex = new Semaphore.semaphore 1;
-                              mutex = new Semaphore.semaphore 1 };;
+                              santa_sem = new Semaphore.semaphore 0 "santa_sem";
+                              reindeer_sem = new Semaphore.semaphore 0 "reindeer_sem";
+                              elf_mutex = new Semaphore.semaphore 1 "elf_mutex";
+                              mutex = new Semaphore.semaphore 1 "mutex" };;
 
 
 let prepare_sleigh () = printf "Prepare sleigh\n"; flush stdout;;
