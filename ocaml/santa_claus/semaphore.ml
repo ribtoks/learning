@@ -26,7 +26,7 @@ module Semaphore = struct
         Mutex.unlock sync
 
       method log log_message =
-        let _ = Printf.sprintf ("%s: %s\n") name log_message in
+        Printf.printf ("%s: %s\n") name log_message;
         flush stdout
     end
 end;;
