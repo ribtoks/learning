@@ -36,7 +36,10 @@ let santa_role_func c =
   c.mutex#signal 1;;
 
 
-let reindeer_role_func c =
+let reindeer_role_func (c, i) =
+  printf "Starting reindeer %d\n" i;
+  flush stdout;
+  
   c.mutex#wait;
   c.reindeer <- c.reindeer + 1;
   if c.reindeer = 9 then c.santa_sem#signal 1;
@@ -74,7 +77,7 @@ let santa_loop () =
 in
 let santa_array = [| Thread.create santa_loop () |]
 and
-reindeer_array = Array.init 9 (fun _ -> Thread.create reindeer_role_func c)
+reindeer_array = Array.init 9 (fun i -> Thread.create reindeer_role_func (c, i))
 and
 elf_array = Array.init 20 (fun _ -> Thread.create elves_role_func c)
 in

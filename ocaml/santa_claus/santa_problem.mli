@@ -12,5 +12,5 @@ val help_elves : unit -> unit
 val get_hitched : unit -> unit
 val get_help : unit -> unit
 val santa_role_func : santa_counters -> unit
-val reindeer_role_func : santa_counters -> unit
+val reindeer_role_func : santa_counters * int -> unit
 val elves_role_func : santa_counters -> unit
