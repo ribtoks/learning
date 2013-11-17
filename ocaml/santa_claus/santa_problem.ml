@@ -30,7 +30,6 @@ let get_help () = puts "Get Help";;
 
 let santa_role_func c =
   c.santa_sem#wait;
-
   c.mutex#wait;
 
   if c.reindeer = 9 then (

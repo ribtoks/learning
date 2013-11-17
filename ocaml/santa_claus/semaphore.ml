@@ -22,9 +22,5 @@ module Semaphore = struct
         done;
         self#dec 1;
         Mutex.unlock sync
-
-      method log log_message =
-        Printf.printf ("%s: %s\n") name log_message;
-        flush stdout
     end
 end;;

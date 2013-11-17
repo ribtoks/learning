@@ -1,18 +1,22 @@
 #!/bin/bash
 
-rm santa_problem
-rm *.cmo
-rm *.cmi
+rm santa_problem &> /dev/null
+rm *.cmo &> /dev/null
+rm *.cmi &> /dev/null
+rm *.mli &> /dev/null
 
-ocamlc -thread -i unix.cma threads.cma semaphore.ml > semaphore.mli
+THREAD_PARAMS="-thread unix.cma threads.cma"
+OCAML_COMMAND="ocamlc $THREAD_PARAMS"
 
-ocamlc -thread unix.cma threads.cma -c semaphore.mli
-ocamlc -thread unix.cma threads.cma -c semaphore.ml
+$OCAML_COMMAND -i semaphore.ml > semaphore.mli
 
-ocamlc -thread threads.cma unix.cma semaphore.mli -i santa_problem.ml > santa_problem.mli
+$OCAML_COMMAND -c semaphore.mli
+$OCAML_COMMAND -c semaphore.ml
 
-ocamlc -thread threads.cma unix.cma semaphore.mli -c santa_problem.mli
-ocamlc -thread threads.cma unix.cma semaphore.mli -c santa_problem.ml
+$OCAML_COMMAND semaphore.mli -i santa_problem.ml > santa_problem.mli
 
-ocamlc -thread unix.cma threads.cma -o santa_problem semaphore.cmo santa_problem.cmo
+$OCAML_COMMAND semaphore.mli -c santa_problem.mli
+$OCAML_COMMAND semaphore.mli -c santa_problem.ml
+
+$OCAML_COMMAND -o santa_problem semaphore.cmo santa_problem.cmo
 
