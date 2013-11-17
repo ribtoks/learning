@@ -1,5 +1,4 @@
 open Semaphore;;
-open Printf;;
 
 let stdout_sem = new Semaphore.semaphore 1 "stdout_sem";;
 let puts s =
