@@ -11,7 +11,7 @@ module Semaphore :
         method dec : int -> unit
         method inc : int -> unit
         method log : string -> unit
-        method signal : int -> unit
+        method signal : ?n:int -> unit -> unit
         method wait : unit
       end
   end

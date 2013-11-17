@@ -1,3 +1,5 @@
+val stdout_sem : Semaphore.Semaphore.semaphore
+val puts : string -> unit
 type santa_counters = {
   mutable elves : int;
   mutable reindeer : int;
@@ -13,4 +15,4 @@ val get_hitched : unit -> unit
 val get_help : unit -> unit
 val santa_role_func : santa_counters -> unit
 val reindeer_role_func : santa_counters * int -> unit
-val elves_role_func : santa_counters -> unit
+val elves_role_func : santa_counters * int -> unit

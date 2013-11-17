@@ -9,15 +9,13 @@ module Semaphore = struct
       method inc n = count <- count + n
       method dec n = count <- count - n
 
-      method signal n =
-        self#log "signal";
+      method signal ?(n=1) () =
         Mutex.lock sync;
         self#inc n;
         Condition.signal cond;
         Mutex.unlock sync
 
       method wait =
-        self#log "wait";
         Mutex.lock sync;
         while count = 0 do
           Condition.wait cond sync
