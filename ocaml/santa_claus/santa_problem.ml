@@ -11,6 +11,7 @@ type santa_counters = { mutable elves : int;
                         mutable reindeer : int;
                         santa_sem : Semaphore.semaphore;
                         reindeer_sem : Semaphore.semaphore;
+                        elf_sem : Semaphore.semaphore;
                         elf_mutex : Semaphore.semaphore;
                         mutex : Semaphore.semaphore };;
 
@@ -18,6 +19,7 @@ let new_santa_counters () = { elves = 0;
                               reindeer = 0;
                               santa_sem = new Semaphore.semaphore 0 "santa_sem";
                               reindeer_sem = new Semaphore.semaphore 0 "reindeer_sem";
+                              elf_sem = new Semaphore.semaphore 0 "elf_sem";
                               elf_mutex = new Semaphore.semaphore 1 "elf_mutex";
                               mutex = new Semaphore.semaphore 1 "mutex" };;
 
@@ -36,8 +38,10 @@ let santa_role_func c =
     c.reindeer_sem#signal ~n:9 ();
     c.reindeer <- 0;
    )
-  else if c.elves = 3 then
+  else if c.elves = 3 then (
     help_elves ();
+    c.elf_sem#signal ~n:3 ()
+   );
 
   c.mutex#signal ();;
 
@@ -70,7 +74,8 @@ let elves_role_func (c, i) =
   else
     c.elf_mutex#signal ();
   c.mutex#signal ();
-  
+
+  c.elf_sem#wait;
   get_help ();
 
   c.mutex#wait;

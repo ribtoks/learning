@@ -5,6 +5,7 @@ type santa_counters = {
   mutable reindeer : int;
   santa_sem : Semaphore.Semaphore.semaphore;
   reindeer_sem : Semaphore.Semaphore.semaphore;
+  elf_sem : Semaphore.Semaphore.semaphore;
   elf_mutex : Semaphore.Semaphore.semaphore;
   mutex : Semaphore.Semaphore.semaphore;
 }
