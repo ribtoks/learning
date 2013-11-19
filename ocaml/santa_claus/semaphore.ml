@@ -12,9 +12,11 @@ module Semaphore = struct
       method signal ?(n=1) () =
         Mutex.lock sync;
         self#inc n;
-        Condition.signal cond;
+        for i = 1 to n do
+          Condition.signal cond
+        done;
         Mutex.unlock sync
-
+        
       method wait =
         Mutex.lock sync;
         while count = 0 do

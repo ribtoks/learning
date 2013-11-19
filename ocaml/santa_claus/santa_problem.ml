@@ -34,6 +34,7 @@ let santa_role_func c =
   if c.reindeer = 9 then (
     prepare_sleigh ();
     c.reindeer_sem#signal ~n:9 ();
+    c.reindeer <- 0;
    )
   else if c.elves = 3 then
     help_elves ();
@@ -42,6 +43,7 @@ let santa_role_func c =
 
 
 let reindeer_role_func (c, i) =
+  Thread.delay 0.5;
   let s = Printf.sprintf "Starting reindeer (%d)" i in
   puts s;
   
@@ -56,6 +58,7 @@ let reindeer_role_func (c, i) =
 
 
 let elves_role_func (c, i) =
+  Thread.delay 0.5;
   let s = Printf.sprintf "Starting elf [%d]" i in
   puts s;
   
@@ -79,7 +82,6 @@ let elves_role_func (c, i) =
 let c = new_santa_counters () in
 let santa_loop () =
   puts "Starting santa loop";
-  flush stdout;
   while true do
     santa_role_func c;
   done
