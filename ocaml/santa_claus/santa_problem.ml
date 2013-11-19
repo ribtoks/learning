@@ -86,7 +86,7 @@ let elves_role_func (c, i) =
 
 let c = new_santa_counters () in
 let santa_loop () =
-  puts "Starting santa loop";
+  puts "Starting Santa loop";
   while true do
     santa_role_func c;
   done
