@@ -142,6 +142,21 @@ void mul_numbers(BigNumber *a, BigNumber *b, BigNumber *result) {
    result->m_Size = size + 1;
 }
 
+void div_short(BigNumber *a, ushort b, BigNumber *result, ushort *remain) {
+   int r = 0;
+
+   for (int i = a->m_Size - 1; i >= 0; --i){
+      int temp = r * BASE + a->m_Data[i];
+      result->m_Data[i] = temp / b;
+      r = temp % b;
+   }
+
+   int size = a->m_Size - 1;
+   while (result->m_Data[size] == 0) size--;
+   result->m_Size = size + 1;
+   *remain = r;
+}
+
 ushort my_atoi(const char *data, int sz) {
    int res = 0;
    while (sz--) {
@@ -269,11 +284,35 @@ void test_mul() {
    }
 }
 
+void test_div() {
+   BigNumber a;
+   std::string a_str = "234234141314134143134";
+   from_string(a_str.c_str(), a_str.length(), &a);
+
+   ushort b = 9808;
+
+   BigNumber div;
+   std::string div_str = "23881947523871751";
+   from_string(div_str.c_str(), div_str.length(), &div);
+
+   ushort rem = 9326;
+
+   BigNumber result;
+   ushort remain;
+   div_short(&a, b, &result, &remain);
+
+   if (!equals(&div, &result) || rem != remain) {
+      std::cout << "Div is not working" << std::endl;
+   }
+}
+
 int main() {
    test_from_string();
+
    test_add();
    test_sub();
    test_mul();
+   test_div();
 
    std::cout << "DONE" << std::endl;
    return 0;
