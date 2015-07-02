@@ -17,7 +17,7 @@ int main () {
    }
 
    // LIS - Longest Increasing Subsequence
-   // d[i] - least index of element which is last in LIS of length i
+   // d[i] - smallest element which is last in LIS of length i
    d[0] = -INF; p[0] = -1;
    for (int i = 1; i <= n; ++i) { d[i] = INF; p[i] = -1; }
 
