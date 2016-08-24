@@ -7,21 +7,6 @@
 #include <queue>
 #include <cmath>
 
-#define ALLOWED_CHARS "0123456789+-*/^()"
-
-enum Associativity {
-    AssocLeft,
-    AssocRight
-};
-
-std::map<char, Associativity> OperatorsAssoc = {
-    {'+', AssocLeft},
-    {'-', AssocLeft},
-    {'*', AssocLeft},
-    {'/', AssocLeft},
-    {'^', AssocRight}
-};
-
 std::map<char, int> OperatorsPrecedence = {
     {'(', 0}, {')', 0},
     {'+', 1}, {'-', 1},
@@ -172,7 +157,8 @@ int main() {
         {"(2+2)*3", 12.0},
         {"3 + 15*(3 + 21*(5 - 0))", 1623.0},
         {"0.1+0.2", 0.3},
-        {"(2+2)^(3+2)", 1024.0}
+        {"(2+2)^(3+2)", 1024.0},
+        {"2+(3) - (4)*(2)", -3.0}
     };
 
     int succeeded = 0, failed = 0;
