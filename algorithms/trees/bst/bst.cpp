@@ -83,6 +83,8 @@ public:
             node = parent;
             parent = node->m_Parent;
          }
+
+	 prevNode = parent;
       }
 
       return prevNode;
