@@ -79,7 +79,7 @@ public:
          prevNode = node->m_Left->findMaximum();
       } else {
          Node *parent = node->m_Parent;
-         while (parent != NULL && parent->m_Right == node) {
+         while (parent != NULL && parent->m_Left == node) {
             node = parent;
             parent = node->m_Parent;
          }
