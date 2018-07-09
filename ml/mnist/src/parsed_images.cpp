@@ -4,7 +4,7 @@
 #include "cpphelpers.h"
 
 #define MAGIC_NUMBER 0x00000803
-#define IMAGES_COUNT 60000
+#define IMAGES_COUNT 10000
 #define ROWS_NUMBER 28
 #define COLUMNS_NUMBER 28
 
@@ -12,30 +12,50 @@ parsed_images_t::iterator::iterator(std::ifstream &stream, size_t columns, size_
     stream_(stream),
     columns_(columns),
     rows_(rows),
-    index_(index)
+    local_index_(0),
+    global_index_(index)
 {
 }
 
-void parsed_images_t::iterator::read_next() {
-    data_.clear();
-    data_.reserve(rows_);
-    
-    for (size_t i = 0; i < columns_; i++) {
-        data1d row;
-        row.resize(columns_);
-        stream_.read(reinterpret_cast<char*>(&row[0]), columns_);
-        data_.emplace_back(row);
+void parsed_images_t::iterator::refill_cache() {
+    std::vector<image_data> cache;
+    image_data data;
+    data.resize(columns_*rows_);
+
+    int count = 600;
+    while (count--) {
+        if (stream_.read(reinterpret_cast<char*>(&data[0]), data.size())) {
+            cache.push_back(data);
+        } else {
+            break;
+        }
     }
 
-    index_++;
+    data_.swap(cache);
+}
+
+const parsed_images_t::image_data& parsed_images_t::iterator::operator*() {
+    if (local_index_ >= data_.size()) {
+        refill_cache();
+        if (data_.size() > 0) {
+            local_index_ = 0;
+        }
+    }
+    
+    if (local_index_ < data_.size()) {
+        auto &result = data_[local_index_];
+        return result;
+    } else {
+        throw std::logic_error("Cannot read more images");
+    }
 }
 
 bool parsed_images_t::iterator::operator==(const iterator &other) {
-    return index_ == other.index_;
+    return global_index_ == other.global_index_;
 }
 
 bool parsed_images_t::iterator::operator!=(const iterator &other) {
-    return index_ != other.index_;
+    return global_index_ != other.global_index_;
 }
 
 parsed_images_t::parsed_images_t(const std::string &filepath):
@@ -60,7 +80,7 @@ void parsed_images_t::read_header() {
     uint32_t images_number;
     if (stream_.read(reinterpret_cast<char*>(&images_number), sizeof(images_number))) {
         images_number = swap_endian<uint32_t>(images_number);
-        if (images_number != IMAGES_COUNT) {
+        if (images_number % IMAGES_COUNT != 0) {
             throw std::runtime_error(string_format("Images number does not match: %d found", images_number));
         }
     }

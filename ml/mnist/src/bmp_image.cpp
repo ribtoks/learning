@@ -4,8 +4,8 @@
 #include <exception>
 
 void bmp_image_t::save(const std::string &filepath) {
-    const int h = data_.size();
-    const int w = data_[0].size();
+    const int h = data_.size()/width_;
+    const int w = width_;
     const int filesize = 54 + 3*w*h;
 
     std::vector<uint8_t> img;
@@ -14,12 +14,13 @@ void bmp_image_t::save(const std::string &filepath) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
             int x = j;
-            int y = (h - 1) - i;
-            int v = data_[i][j];            
+            int y = i;
+            int pos = x + y*w;
+            int v = 255 - data_[pos];
             int r = v, g = v, b = v;
-            img[(x + y*w)*3+2] = (unsigned char)(r);
-            img[(x + y*w)*3+1] = (unsigned char)(g);
-            img[(x + y*w)*3+0] = (unsigned char)(b);
+            img[pos*3+2] = (unsigned char)(r);
+            img[pos*3+1] = (unsigned char)(g);
+            img[pos*3+0] = (unsigned char)(b);
         }
     }
 
