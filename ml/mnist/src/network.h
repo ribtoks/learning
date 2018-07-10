@@ -10,7 +10,6 @@ class network_t {
 public:
     using v_d = vector_t<double>;
     using m_d = matrix_t<double>;
-    using io_pair = std::tuple<std::vector<v_d>, std::vector<m_d>>;
     using training_data = std::vector<std::tuple<v_d, double>>;
     
 public:
@@ -33,10 +32,12 @@ private:
                            const std::vector<size_t> &indices,
                            double eta);
 
-    void backpropagation(const v_d &input, double result,
-                         std::vector<v_d> &nabla_b,
-                         std::vector<m_d> &nabla_w);
+    void backpropagate(const v_d &input, double result,
+                       std::vector<v_d> &nabla_b,
+                       std::vector<m_d> &nabla_w);
 
+    v_d cost_derivative(const v_d &actual, const v_d &expected);
+    
 private:
     std::vector<int> layers_;
     std::vector<v_d> biases_;

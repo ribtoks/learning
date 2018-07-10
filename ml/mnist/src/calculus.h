@@ -4,12 +4,20 @@
 #include <vector>
 #include <cmath>
 #include <random>
-#include <assert>
+#include <cassert>
 #include <functional>
 
 double sigmoid(double x) {
     return 1.0/(1.0 + exp(-x));
 }
+
+double sigmoid_derivative(double x) {
+    double sigmoid_x = sigmoid(x);
+    return sigmoid_x * (1.0 - sigmoid_x);
+}
+
+template<typename T>
+class matrix_t;
 
 template<typename T = double>
 class vector_t {
@@ -44,7 +52,9 @@ public:
 
 public:
     void operator=(vector_t<T> const &other) {
-        assert(other.size() == size());
+        if (size() != other.size()) {
+            v_.resize(other.size());
+        }
         const size_t size = other.size();
         for (size_t i = 0; i < size; i++) {
             v_[i] = other.v_[i];
@@ -62,9 +72,33 @@ public:
         return sum;
     }
 
+    matrix_t<T> dot_transpose(const vector_t<T> &other) const {
+        const size_t height = this->size();
+        const size_t width = other.size();
+
+        matrix_t<T> result(height, width, 0);
+
+        for (size_t i = 0; i < height; i++) {
+            for (size_t j = 0; j < width; j++) {
+                result[i][j] = v_[i] * other.v_[j];
+            }
+        }
+
+        return result;
+    }
+
     vector_t<T> &mul(const T &a) {
        for (auto &v: v_) {
            v *= a;
+        }
+        return *this;
+    }
+
+    vector_t<T> &element_mul(const vector_t<T> &other) {
+        assert(other.size() == size());
+        const size_t size = other.size();
+        for (size_t i = 0; i < size; i++) {
+            v_[i] *= other.v_[i];
         }
         return *this;
     }
@@ -74,6 +108,15 @@ public:
         const size_t size = other.size();
         for (size_t i = 0; i < size; i++) {
             v_[i] += other.v_[i];
+        }
+        return *this;
+    }
+
+    vector_t<T> &subtract(const vector_t<T> &other) {
+        assert(other.size() == size());
+        const size_t size = other.size();
+        for (size_t i = 0; i < size; i++) {
+            v_[i] -= other.v_[i];
         }
         return *this;
     }
@@ -103,7 +146,7 @@ public:
         width_(width)
     {
         for (size_t i = 0; i < height; i++) {
-            rows.emplace_back(vector_t<T>(width, mean, stddev));
+            rows_.emplace_back(vector_t<T>(width, mean, stddev));
         }
     }
 
@@ -112,7 +155,7 @@ public:
         width_(width)
     {
         for (size_t i = 0; i < height; i++) {
-            rows.emplace_back(vector_t<T>(width, v));
+            rows_.emplace_back(vector_t<T>(width, v));
         }
     }
 
@@ -127,9 +170,24 @@ public:
     vector_t<T> dot(const vector_t<T> &v) const {
         assert(width_ == v.size());
         vector_t<T> output(height_, 0);
-        for (size_t i = 0; i < height; i++) {
+        for (size_t i = 0; i < height_; i++) {
             output[i] = rows_[i].dot(v);
         }
+        return output;
+    }
+
+    vector_t<T> transpose_dot(const vector_t<T> &v) const {
+        assert(height_ == v.size());
+        vector_t<T> output(width_, 0);
+
+        for (size_t i = 0; i < width_; i++) {
+            T sum = 0;
+            for (size_t j = 0; j < height_; j++) {
+                sum += rows_[j][i] * v[j];
+            }
+            output[i] = sum;
+        }
+        
         return output;
     }
 
