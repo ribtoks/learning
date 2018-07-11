@@ -19,6 +19,7 @@ std::vector<std::tuple<vector_t<double>, vector_t<double>>> mnist_dataset_t::tra
 
     std::vector<std::tuple<vector_t<double>, vector_t<double>>> data;
     size_t count_limit = limit == -1 ? parsed_images.size() : limit;
+    data.reserve(count_limit);
 
     for (;
          itImg != itImgEnd && itLbl != itLblEnd;
