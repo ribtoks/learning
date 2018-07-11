@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     double learning_rate = 1.0;
 
     auto training_data = mnist_dataset.training_data(1000);
-    network.train_sdg(training_data,
+    network.train_sgd(training_data,
                       epochs,
                       mini_batch_size,
                       learning_rate);

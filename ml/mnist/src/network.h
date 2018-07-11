@@ -17,7 +17,7 @@ public:
 
 public:
     // train network using stochastic gradient descent
-    void train_sdg(const training_data &data,
+    void train_sgd(const training_data &data,
                    size_t epochs,
                    size_t mini_batch_size,
                    double eta);

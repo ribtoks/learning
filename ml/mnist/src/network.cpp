@@ -69,7 +69,7 @@ std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
     return batches;
 }
 
-void network_t::train_sdg(const training_data &data,
+void network_t::train_sgd(const training_data &data,
                           size_t epochs,
                           size_t minibatch_size,
                           double eta) {
