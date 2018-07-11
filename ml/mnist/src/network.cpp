@@ -1,5 +1,8 @@
 #include "network.h"
 #include <algorithm>
+#include <numeric>
+#include "calculus.h"
+#include "log.h"
 
 std::vector<network_t::v_d> copy_shapes(const std::vector<network_t::v_d> &from) {
     std::vector<network_t::v_d> to;
@@ -53,8 +56,8 @@ network_t::network_t(std::initializer_list<int> layers):
 }
 
 std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
-    std::vector<size_t> indices(size, 0);
-    for (size_t i = 0; i < size; i++) { indices[i] = i; }
+    std::vector<size_t> indices(size);
+    std::iota(indices.begin(), indices.end(), 0);
     std::random_shuffle(indices.begin(), indices.end());
 
     std::vector<std::vector<size_t>> batches;
@@ -70,12 +73,33 @@ void network_t::train_sdg(const training_data &data,
                           size_t epochs,
                           size_t minibatch_size,
                           double eta) {
+    const size_t training_size = 5 * data.size() / 6;
+    std::vector<size_t> eval_indices(data.size() - training_size);
+    std::iota(std::begin(eval_indices), std::end(eval_indices), training_size);
+    
     for (size_t j = 0; j < epochs; j++) {
-        auto indices_batches = batch_indices(data.size(), minibatch_size);
+        auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
             update_mini_batch(data, indices, eta);
         }
+
+        if (j % 5 == 0) {
+            auto result = evaluate(data, eval_indices);
+            log("Epoch %d: %d / %d", j, result, eval_indices.size());
+        } else {
+            log("Epoch %d ended", j);
+        }
     }
+}
+
+size_t network_t::evaluate(const training_data &data, const std::vector<size_t> &indices) {
+    size_t count = 0;
+    for (auto &i: indices) {
+        network_t::v_d result = feedforward(std::get<0>(data[i]));
+        count += argmax(result) == argmax(std::get<1>(data[i])) ? 1 : 0;
+    }
+
+    return count;
 }
 
 network_t::v_d network_t::feedforward(network_t::v_d a) {
@@ -83,7 +107,7 @@ network_t::v_d network_t::feedforward(network_t::v_d a) {
     const size_t size = weights_.size();
     for (size_t i = 0; i < size; i++) {
         // a = sigma(w*a + b)
-        a = weights_[i].dot(a).add(biases_[i]).apply(sigmoid);
+        a = dot(weights_[i], a).add(biases_[i]).apply(sigmoid);
     }
     return a;
 }
@@ -123,7 +147,8 @@ void network_t::update_mini_batch(const network_t::training_data &data,
     }
 }
 
-void network_t::backpropagate(const network_t::v_d &input, double result,
+void network_t::backpropagate(const network_t::v_d &input,
+                              const network_t::v_d &result,
                               std::vector<network_t::v_d> &nabla_b,
                               std::vector<network_t::m_d> &nabla_w) {
     std::vector<network_t::v_d> zs;
@@ -132,24 +157,23 @@ void network_t::backpropagate(const network_t::v_d &input, double result,
 
     for (size_t i = 0; i < layers_count; i++) {
         auto &last_activation = activations.back();
-        auto z = weights_[i].dot(last_activation).add(biases_[i]);
+        auto z = dot(weights_[i], last_activation).add(biases_[i]);
         zs.push_back(z);
         activations.push_back(z.apply(sigmoid));
     }
 
-    auto delta = cost_derivative(activations.back(), zs.back())
+    auto delta = cost_derivative(activations.back(), result)
         .element_mul(zs.back().apply(sigmoid_derivative));
     
     nabla_b[layers_count - 1] = delta;
-    nabla_w[layers_count - 1] = delta.dot_transpose(activations[layers_count - 2]);
+    nabla_w[layers_count - 1] = dot_transpose(delta, activations[layers_count - 2]);
 
     for (size_t i = 2; i < layers_count; i++) {
         size_t j = layers_count - 1 - i;
-        delta = weights_[j + 1].transpose_dot(delta)
-            .element_mul(
-                zs[j].apply(sigmoid_derivative));
+        delta = transpose_dot(weights_[j + 1], delta)
+            .element_mul(zs[j].apply(sigmoid_derivative));
         nabla_b[j] = delta;
-        nabla_w[j] = delta.dot_transpose(activations[j - 1]);
+        nabla_w[j] = dot_transpose(delta, activations[j - 1]);
     }
 }
 

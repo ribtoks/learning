@@ -4,13 +4,13 @@
 #include <initializer_list>
 #include <vector>
 #include <tuple>
-#include "calculus.h"
+#include "calculus_types.h"
 
 class network_t {
 public:
     using v_d = vector_t<double>;
     using m_d = matrix_t<double>;
-    using training_data = std::vector<std::tuple<v_d, double>>;
+    using training_data = std::vector<std::tuple<v_d, v_d>>;
     
 public:
     network_t(std::initializer_list<int> layers);
@@ -23,6 +23,8 @@ public:
                    double eta);
 
 private:
+    // evaluates number of correct classified inputs 
+    size_t evaluate(const training_data &data, const std::vector<size_t> &indices);
     // feeds input a to the network and returns output
     v_d feedforward(v_d a);
     // updates network weights and biases using one
@@ -32,7 +34,8 @@ private:
                            const std::vector<size_t> &indices,
                            double eta);
 
-    void backpropagate(const v_d &input, double result,
+    void backpropagate(const v_d &input,
+                       const v_d &result,
                        std::vector<v_d> &nabla_b,
                        std::vector<m_d> &nabla_w);
 
