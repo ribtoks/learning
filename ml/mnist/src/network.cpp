@@ -121,7 +121,7 @@ void network_t::update_mini_batch(const network_t::training_data &data,
     auto delta_nabla_b = copy_shapes(biases_);
     auto delta_nabla_w = copy_shapes(weights_);
 
-    const size_t layers_size = layers_.size();
+    const size_t size = layers_.size() - 1;
     for (auto i: indices) {
         auto &input = std::get<0>(data[i]);
         auto &result = std::get<1>(data[i]);
@@ -131,7 +131,7 @@ void network_t::update_mini_batch(const network_t::training_data &data,
 
         backpropagate(input, result, delta_nabla_b, delta_nabla_w);
 
-        for (size_t i = 0; i < layers_size; i++) {
+        for (size_t i = 0; i < size; i++) {
             nabla_b[i].add(delta_nabla_b[i]);
             nabla_w[i].add(delta_nabla_w[i]);
         }
@@ -141,7 +141,7 @@ void network_t::update_mini_batch(const network_t::training_data &data,
     double scale = eta/minibatch_size;
 
     // w = w - eta/minibatch_size * gradient_w
-    for (size_t i = 0; i < layers_size; i++) {
+    for (size_t i = 0; i < size; i++) {
         biases_[i].add(nabla_b[i].mul(-scale));
         weights_[i].add(nabla_w[i].mul(-scale));
     }
@@ -153,27 +153,31 @@ void network_t::backpropagate(const network_t::v_d &input,
                               std::vector<network_t::m_d> &nabla_w) {
     std::vector<network_t::v_d> zs;
     std::vector<network_t::v_d> activations { input };
-    const size_t layers_count = layers_.size();
+    const size_t size = layers_.size() - 1;
+	const size_t layers_count = layers_.size();
 
-    for (size_t i = 0; i < layers_count; i++) {
+    for (size_t i = 0; i < size; i++) {
         auto &last_activation = activations.back();
         auto z = dot(weights_[i], last_activation).add(biases_[i]);
         zs.push_back(z);
         activations.push_back(z.apply(sigmoid));
     }
 
-    auto delta = cost_derivative(activations.back(), result)
+	// delta_l = (w_l+1 * delta_l+1) * cost_deriv(z_l)
+	// dC/db = delta_l
+	// dC/dw = a_l-1 * delta_l
+    auto delta = cost_derivative(activations[layers_count - 1], result)
         .element_mul(zs.back().apply(sigmoid_derivative));
     
-    nabla_b[layers_count - 1] = delta;
-    nabla_w[layers_count - 1] = dot_transpose(delta, activations[layers_count - 2]);
+    nabla_b[size - 1] = delta;
+    nabla_w[size - 1] = dot_transpose(delta, activations[layers_count - 2]);
 
-    for (size_t i = 2; i < layers_count; i++) {
-        size_t j = layers_count - 1 - i;
-        delta = transpose_dot(weights_[j + 1], delta)
-            .element_mul(zs[j].apply(sigmoid_derivative));
-        nabla_b[j] = delta;
-        nabla_w[j] = dot_transpose(delta, activations[j - 1]);
+    for (size_t i = 1; i < size; i++) {
+        size_t l = size - 1 - i;
+		delta = transpose_dot(weights_[l + 1], delta)
+			.element_mul(zs[l].apply(sigmoid_derivative));
+        nabla_b[l] = delta;
+        nabla_w[l] = dot_transpose(delta, activations[l]);
     }
 }
 
