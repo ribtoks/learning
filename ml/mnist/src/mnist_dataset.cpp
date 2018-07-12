@@ -32,7 +32,7 @@ std::vector<std::tuple<vector_t<double>, vector_t<double>>> mnist_dataset_t::tra
         if (data.size() > count_limit) { break; }
     }
 
-    log("Training data loaded");
+    log("Training data loaded: %d images", data.size());
 
     return data;
 }

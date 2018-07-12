@@ -39,6 +39,8 @@ private:
                        std::vector<v_d> &nabla_b,
                        std::vector<m_d> &nabla_w);
 
+	v_d &activate(v_d &z);
+	v_d &activation_derivative(v_d &z);
     v_d cost_derivative(const v_d &actual, const v_d &expected);
     
 private:

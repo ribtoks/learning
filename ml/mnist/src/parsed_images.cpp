@@ -20,7 +20,7 @@ parsed_images_t::iterator::iterator(std::ifstream &stream, size_t columns, size_
 void parsed_images_t::iterator::refill_cache() {
     std::vector<image_data> cache;
     image_data data;
-    data.resize(columns_*rows_);
+    data.resize(columns_ * rows_);
 
     int count = 600;
     while (count--) {
@@ -31,19 +31,19 @@ void parsed_images_t::iterator::refill_cache() {
         }
     }
 
-    data_.swap(cache);
+    cache_.swap(cache);
 }
 
-const parsed_images_t::image_data& parsed_images_t::iterator::operator*() {
-    if (local_index_ >= data_.size()) {
+const parsed_images_t::image_data &parsed_images_t::iterator::operator*() {
+    if (local_index_ >= cache_.size()) {
         refill_cache();
-        if (data_.size() > 0) {
+        if (cache_.size() > 0) {
             local_index_ = 0;
         }
     }
     
-    if (local_index_ < data_.size()) {
-        auto &result = data_[local_index_];
+    if (local_index_ < cache_.size()) {
+        auto &result = cache_[local_index_];
         return result;
     } else {
         throw std::logic_error("Cannot read more images");

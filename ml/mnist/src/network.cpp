@@ -33,7 +33,7 @@ network_t::network_t(std::initializer_list<int> layers):
 
     biases_.reserve(layers_count - 1);
     // first layer of neurons is an input
-    // and doesn't have any biases
+    // and doesn't have any biases and weights
     for (size_t i = 1; i < layers_count; i++) {
         int dim = layers_[i];
         biases_.emplace_back(dim, 0.0, 1.0);
@@ -53,6 +53,7 @@ network_t::network_t(std::initializer_list<int> layers):
     }
 
     assert(weights_.size() == biases_.size());
+	assert(weights_.size() == layers_.size() - 1);
 }
 
 std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
@@ -73,9 +74,11 @@ void network_t::train_sgd(const training_data &data,
                           size_t epochs,
                           size_t minibatch_size,
                           double eta) {
+	// big chunk of data is used for training while 
+	// small chunk - for validation after some epochs
     const size_t training_size = 5 * data.size() / 6;
     std::vector<size_t> eval_indices(data.size() - training_size);
-    std::iota(std::begin(eval_indices), std::end(eval_indices), training_size);
+    std::iota(eval_indices.begin(), eval_indices.end(), training_size);
     
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
@@ -96,9 +99,9 @@ size_t network_t::evaluate(const training_data &data, const std::vector<size_t> 
     size_t count = 0;
     for (auto &i: indices) {
         network_t::v_d result = feedforward(std::get<0>(data[i]));
-        count += argmax(result) == argmax(std::get<1>(data[i])) ? 1 : 0;
+		assert(result.size() == std::get<1>(data[i]).size());
+		if (argmax(result) == argmax(std::get<1>(data[i]))) { count++; }
     }
-
     return count;
 }
 
@@ -107,7 +110,7 @@ network_t::v_d network_t::feedforward(network_t::v_d a) {
     const size_t size = weights_.size();
     for (size_t i = 0; i < size; i++) {
         // a = sigma(w*a + b)
-        a = dot(weights_[i], a).add(biases_[i]).apply(sigmoid);
+        a = activate( dot(weights_[i], a).add(biases_[i]) );
     }
     return a;
 }
@@ -157,28 +160,36 @@ void network_t::backpropagate(const network_t::v_d &input,
 	const size_t layers_count = layers_.size();
 
     for (size_t i = 0; i < size; i++) {
-        auto &last_activation = activations.back();
-        auto z = dot(weights_[i], last_activation).add(biases_[i]);
+        auto z = dot(weights_[i], activations.back()).add(biases_[i]);
         zs.push_back(z);
-        activations.push_back(z.apply(sigmoid));
+        activations.push_back(activate(z));
     }
 
-	// delta_l = (w_l+1 * delta_l+1) * cost_deriv(z_l)
-	// dC/db = delta_l
-	// dC/dw = a_l-1 * delta_l
-    auto delta = cost_derivative(activations[layers_count - 1], result)
-        .element_mul(zs.back().apply(sigmoid_derivative));
-    
+	// delta(L) = cost_deriv [X] sigma_deriv(z(L))
+    auto delta = cost_derivative(activations.back(), result)
+        .element_mul(activation_derivative(zs.back()));
+
+	// delta(l) = (w(l+1) * delta(l+1)) [X] sigma_deriv(z(l))
+	// dC/db = delta(l)
+	// dC/dw = a(l-1) * delta(l)
     nabla_b[size - 1] = delta;
     nabla_w[size - 1] = dot_transpose(delta, activations[layers_count - 2]);
 
     for (size_t i = 1; i < size; i++) {
         size_t l = size - 1 - i;
 		delta = transpose_dot(weights_[l + 1], delta)
-			.element_mul(zs[l].apply(sigmoid_derivative));
+			.element_mul(activation_derivative(zs[l]));
         nabla_b[l] = delta;
         nabla_w[l] = dot_transpose(delta, activations[l]);
     }
+}
+
+network_t::v_d &network_t::activate(network_t::v_d &z) {
+	return z.apply(sigmoid);
+}
+
+network_t::v_d &network_t::activation_derivative(network_t::v_d &z) {
+	return z.apply(sigmoid_derivative);
 }
 
 network_t::v_d network_t::cost_derivative(const v_d &actual, const v_d &expected) {

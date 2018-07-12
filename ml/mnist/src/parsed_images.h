@@ -29,7 +29,7 @@ public:
         size_t rows_;
         size_t local_index_;
         size_t global_index_;
-        std::vector<image_data> data_;
+        std::vector<image_data> cache_;
     };
     
 public:

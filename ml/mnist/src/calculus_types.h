@@ -2,7 +2,6 @@
 #define CALCULUS_TYPES_H
 
 #include <vector>
-#include <cmath>
 #include <random>
 #include <cassert>
 #include <functional>
@@ -13,30 +12,30 @@ class matrix_t;
 template<typename T = double>
 class vector_t {
 public:
-    vector_t(size_t size, T mean, T stddev) {
-        std::default_random_engine generator;
-        std::normal_distribution<T> distribution(mean, stddev);
+	vector_t(size_t size, T mean, T stddev) {
+		std::default_random_engine generator;
+		std::normal_distribution<T> distribution(mean, stddev);
 
-        v_.reserve(size);
-        for (size_t i = 0; i < size; i++) {
-            T number = distribution(generator);
-            v_.push_back(number);
-        }
-    }
+		v_.reserve(size);
+		for (size_t i = 0; i < size; i++) {
+			T number = distribution(generator);
+			v_.push_back(number);
+		}
+	}
 
-    vector_t(const vector_t<T> &other):
-        v_(other.v_)
-    {
-    }
+	vector_t(const vector_t<T> &other) :
+		v_(other.v_)
+	{
+	}
 
-    template<typename Q>
-    vector_t(const std::vector<Q> &other) {
-        const size_t size = other.size();
-        v_.resize(size);
-        for (size_t i = 0; i < size; i++) {
-            v_[i] = (T)other[i];
-        }
-    }
+	template<typename Q>
+	vector_t(const std::vector<Q> &other) {
+		const size_t size = other.size();
+		v_.resize(size);
+		for (size_t i = 0; i < size; i++) {
+			v_[i] = (T)other[i];
+		}
+	}
 
     vector_t(size_t size, T v) {
         v_.resize(size, v);
@@ -52,13 +51,7 @@ public:
 
 public:
     void operator=(vector_t<T> const &other) {
-        if (size() != other.size()) {
-            v_.resize(other.size());
-        }
-        const size_t size = other.size();
-        for (size_t i = 0; i < size; i++) {
-            v_[i] = other.v_[i];
-        }
+		v_ = other.v_;
     }
 
 public:
@@ -120,8 +113,9 @@ public:
         height_(height),
         width_(width)
     {
+		rows_.reserve(height);
         for (size_t i = 0; i < height; i++) {
-            rows_.emplace_back(vector_t<T>(width, mean, stddev));
+            rows_.emplace_back(width, mean, stddev);
         }
     }
 
@@ -129,8 +123,9 @@ public:
         height_(height),
         width_(width)
     {
+		rows_.reserve(height);
         for (size_t i = 0; i < height; i++) {
-            rows_.emplace_back(vector_t<T>(width, v));
+            rows_.emplace_back(width, v);
         }
     }
 
@@ -140,6 +135,18 @@ public:
 
     size_t height() const { return height_; }
     size_t width() const { return width_; }
+
+public:
+	void operator=(matrix_t<T> const &other) {
+		if (rows_.size() != other.rows_.size()) {
+			rows_.resize(other.rows_.size());
+		}
+
+		const size_t size = rows_.size();
+		for (size_t i = 0; i < size; i++) {
+			rows_[i] = other.rows_[i];
+		}
+	}
     
 public:
     matrix_t<T> &mul(const T &v) {
