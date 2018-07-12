@@ -38,16 +38,16 @@ private:
                        std::vector<v_d> &nabla_b,
                        std::vector<m_d> &nabla_w);
 
-	v_d &activate(v_d &z) const;
-	v_d &activation_derivative(v_d &z) const;
+    v_d &activate(v_d &z) const;
+    v_d &activation_derivative(v_d &z) const;
     v_d cost_derivative(const v_d &actual, const v_d &expected) const;
     
 private:
-	//  dimensions of layers
+    //  dimensions of layers
     std::vector<int> layers_;
-	// bias(i) is a vector of biases of neurons in layer (i)
+    // bias(i) is a vector of biases of neurons in layer (i)
     std::vector<v_d> biases_;
-	// weight(i) is a matrix of weights between layer (i) and (i + 1)
+    // weight(i) is a matrix of weights between layer (i) and (i + 1)
     std::vector<m_d> weights_;
 };
 
