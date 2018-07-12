@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     
     std::string data_root(argv[1]);
     mnist_dataset_t mnist_dataset(data_root);
-    network_t network({784, 30, 10});
+    network_t network({28*28, 30, 10});
     size_t epochs = 30;
     size_t mini_batch_size = 10;
     double learning_rate = 3.0;

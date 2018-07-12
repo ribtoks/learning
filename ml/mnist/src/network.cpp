@@ -57,7 +57,7 @@ network_t::network_t(std::initializer_list<int> layers):
 }
 
 std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
-    std::vector<size_t> indices(size);
+    std::vector<size_t> indices(size, 0);
     std::iota(indices.begin(), indices.end(), 0);
     std::random_shuffle(indices.begin(), indices.end());
 
@@ -93,11 +93,14 @@ void network_t::train_sgd(const training_data &data,
             log("Epoch %d ended", j);
         }
     }
+
+	auto result = evaluate(data, eval_indices);
+	log("End result: %d / %d", result, eval_indices.size());
 }
 
-size_t network_t::evaluate(const training_data &data, const std::vector<size_t> &indices) {
+size_t network_t::evaluate(const training_data &data, const std::vector<size_t> &indices) const {
     size_t count = 0;
-    for (auto &i: indices) {
+    for (auto i: indices) {
         network_t::v_d result = feedforward(std::get<0>(data[i]));
 		assert(result.size() == std::get<1>(data[i]).size());
 		if (argmax(result) == argmax(std::get<1>(data[i]))) { count++; }
@@ -105,8 +108,9 @@ size_t network_t::evaluate(const training_data &data, const std::vector<size_t> 
     return count;
 }
 
-network_t::v_d network_t::feedforward(network_t::v_d a) {
+network_t::v_d network_t::feedforward(network_t::v_d a) const {
     assert(weights_.size() == biases_.size());
+	assert(a.size() == layers_[0]);
     const size_t size = weights_.size();
     for (size_t i = 0; i < size; i++) {
         // a = sigma(w*a + b)
@@ -144,6 +148,7 @@ void network_t::update_mini_batch(const network_t::training_data &data,
     double scale = eta/minibatch_size;
 
     // w = w - eta/minibatch_size * gradient_w
+	// b = b - eta/minibatch_size * gradietn_b
     for (size_t i = 0; i < size; i++) {
         biases_[i].add(nabla_b[i].mul(-scale));
         weights_[i].add(nabla_w[i].mul(-scale));
@@ -154,9 +159,9 @@ void network_t::backpropagate(const network_t::v_d &input,
                               const network_t::v_d &result,
                               std::vector<network_t::v_d> &nabla_b,
                               std::vector<network_t::m_d> &nabla_w) {
-    std::vector<network_t::v_d> zs;
+	std::vector<network_t::v_d> zs { };
     std::vector<network_t::v_d> activations { input };
-    const size_t size = layers_.size() - 1;
+    const size_t size = weights_.size();
 	const size_t layers_count = layers_.size();
 
     for (size_t i = 0; i < size; i++) {
@@ -184,15 +189,15 @@ void network_t::backpropagate(const network_t::v_d &input,
     }
 }
 
-network_t::v_d &network_t::activate(network_t::v_d &z) {
+network_t::v_d &network_t::activate(network_t::v_d &z) const {
 	return z.apply(sigmoid);
 }
 
-network_t::v_d &network_t::activation_derivative(network_t::v_d &z) {
+network_t::v_d &network_t::activation_derivative(network_t::v_d &z) const {
 	return z.apply(sigmoid_derivative);
 }
 
-network_t::v_d network_t::cost_derivative(const v_d &actual, const v_d &expected) {
+network_t::v_d network_t::cost_derivative(const v_d &actual, const v_d &expected) const {
     network_t::v_d result(actual);
     result.subtract(expected);
     return result;

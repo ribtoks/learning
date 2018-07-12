@@ -24,12 +24,11 @@ public:
 
 private:
     // evaluates number of correct classified inputs 
-    size_t evaluate(const training_data &data, const std::vector<size_t> &indices);
+    size_t evaluate(const training_data &data, const std::vector<size_t> &indices) const;
     // feeds input a to the network and returns output
-    v_d feedforward(v_d a);
+    v_d feedforward(v_d a) const;
     // updates network weights and biases using one
-    // iteration of gradient descent using mini_batch of inputs
-    // each mini-batch is input and output
+    // iteration of gradient descent using mini_batch of inputs and outputs
     void update_mini_batch(const training_data &data,
                            const std::vector<size_t> &indices,
                            double eta);
@@ -39,13 +38,16 @@ private:
                        std::vector<v_d> &nabla_b,
                        std::vector<m_d> &nabla_w);
 
-	v_d &activate(v_d &z);
-	v_d &activation_derivative(v_d &z);
-    v_d cost_derivative(const v_d &actual, const v_d &expected);
+	v_d &activate(v_d &z) const;
+	v_d &activation_derivative(v_d &z) const;
+    v_d cost_derivative(const v_d &actual, const v_d &expected) const;
     
 private:
+	//  dimensions of layers
     std::vector<int> layers_;
+	// bias(i) is a vector of biases of neurons in layer (i)
     std::vector<v_d> biases_;
+	// weight(i) is a matrix of weights between layer (i) and (i + 1)
     std::vector<m_d> weights_;
 };
 
