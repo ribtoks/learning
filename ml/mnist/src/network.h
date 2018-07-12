@@ -17,22 +17,28 @@ public:
 
 public:
     // train network using stochastic gradient descent
+    // number of epochs, minibatch size and learning rate
+    // are hyperparameters
     void train_sgd(const training_data &data,
                    size_t epochs,
                    size_t mini_batch_size,
                    double eta);
 
 private:
-    // evaluates number of correct classified inputs 
+    // evaluates number of correctly classified inputs (validation data)
     size_t evaluate(const training_data &data, const std::vector<size_t> &indices) const;
+    
     // feeds input a to the network and returns output
     v_d feedforward(v_d a) const;
+    
     // updates network weights and biases using one
     // iteration of gradient descent using mini_batch of inputs and outputs
     void update_mini_batch(const training_data &data,
                            const std::vector<size_t> &indices,
                            double eta);
 
+    // runs a loop of propagation of inputs and backpropagation of errors
+    // back to the beginning with weights and biases updates as a result
     void backpropagate(const v_d &input,
                        const v_d &result,
                        std::vector<v_d> &nabla_b,
