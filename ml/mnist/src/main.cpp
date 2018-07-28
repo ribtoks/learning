@@ -13,13 +13,15 @@ int main(int argc, char* argv[]) {
     network_t network({28*28, 30, 10});
     size_t epochs = 30;
     size_t mini_batch_size = 10;
-    double learning_rate = 3.0;
+    double learning_rate = 0.5;
+    double decay_rate = 5.0;
 
     auto training_data = mnist_dataset.training_data();
     network.train_sgd(training_data,
                       epochs,
                       mini_batch_size,
-                      learning_rate);
+                      learning_rate,
+                      decay_rate);
     
     return 0;
 }

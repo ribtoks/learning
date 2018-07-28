@@ -49,7 +49,9 @@ network_t::network_t(std::initializer_list<int> layers):
     for (size_t i = 0; i < layers_count - 1; i++) {
         size_t height = layers_[i+1];
         size_t width = layers_[i];
-        weights_.emplace_back(height, width, 0.0, 1.0);
+        weights_.emplace_back(height, width,
+                              0.0,  // mean
+                              1.0/sqrt((double)width));  // std deviation
     }
 
     assert(weights_.size() == biases_.size());
@@ -73,7 +75,8 @@ std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
 void network_t::train_sgd(const training_data &data,
                           size_t epochs,
                           size_t minibatch_size,
-                          double eta) {
+                          double eta,
+                          double lambda) {
     // big chunk of data is used for training while 
     // small chunk - for validation after some epochs
     const size_t training_size = 5 * data.size() / 6;
@@ -83,10 +86,10 @@ void network_t::train_sgd(const training_data &data,
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
-            update_mini_batch(data, indices, eta);
+            update_mini_batch(data, indices, eta, lambda);
         }
 
-        if (j % 5 == 0) {
+        if (j % 2 == 0) {
             auto result = evaluate(data, eval_indices);
             log("Epoch %d: %d / %d", j, result, eval_indices.size());
         } else {
@@ -121,7 +124,8 @@ network_t::v_d network_t::feedforward(network_t::v_d a) const {
 
 void network_t::update_mini_batch(const network_t::training_data &data,
                                   const std::vector<size_t> &indices,
-                                  double eta) {
+                                  double eta,
+                                  double lambda) {
     auto nabla_b = copy_shapes(biases_);
     auto nabla_w = copy_shapes(weights_);
 
@@ -146,12 +150,13 @@ void network_t::update_mini_batch(const network_t::training_data &data,
 
     double minibatch_size = indices.size() + 0.0;
     double scale = eta/minibatch_size;
+    double decay = 1.0 - eta*lambda/data.size();
 
     // w = w - eta/minibatch_size * gradient_w
     // b = b - eta/minibatch_size * gradietn_b
     for (size_t i = 0; i < size; i++) {
         biases_[i].add(nabla_b[i].mul(-scale));
-        weights_[i].add(nabla_w[i].mul(-scale));
+        weights_[i].mul(decay).add(nabla_w[i].mul(-scale));
     }
 }
 
@@ -164,6 +169,7 @@ void network_t::backpropagate(const network_t::v_d &input,
     const size_t size = weights_.size();
     const size_t layers_count = layers_.size();
 
+    // forward pass
     for (size_t i = 0; i < size; i++) {
         auto z = dot(weights_[i], activations.back()).add(biases_[i]);
         zs.push_back(z);
@@ -171,8 +177,12 @@ void network_t::backpropagate(const network_t::v_d &input,
     }
 
     // delta(L) = cost_deriv [X] sigma_deriv(z(L))
-    auto delta = cost_derivative(activations.back(), result)
-        .element_mul(activation_derivative(zs.back()));
+    // cross-entropy
+    auto delta = cost_derivative(activations.back(), result);
+
+    // quadradic:
+    //auto delta = cost_derivative(activations.back(), result)
+    //    .element_mul(activation_derivative(zs.back()));
 
     // delta(l) = (w(l+1) * delta(l+1)) [X] sigma_deriv(z(l))
     // dC/db = delta(l)
@@ -188,6 +198,7 @@ void network_t::backpropagate(const network_t::v_d &input,
         nabla_w[l] = dot_transpose(delta, activations[l]);
     }
 }
+
 
 network_t::v_d &network_t::activate(network_t::v_d &z) const {
     return z.apply(sigmoid);

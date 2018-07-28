@@ -17,12 +17,13 @@ public:
 
 public:
     // train network using stochastic gradient descent
-    // number of epochs, minibatch size and learning rate
-    // are hyperparameters
+    // number of epochs, minibatch size, learning rate
+    // weight decay are hyperparameters
     void train_sgd(const training_data &data,
                    size_t epochs,
                    size_t mini_batch_size,
-                   double eta);
+                   double eta,
+                   double lambda);
 
 private:
     // evaluates number of correctly classified inputs (validation data)
@@ -35,7 +36,8 @@ private:
     // iteration of gradient descent using mini_batch of inputs and outputs
     void update_mini_batch(const training_data &data,
                            const std::vector<size_t> &indices,
-                           double eta);
+                           double eta,
+                           double lambda);
 
     // runs a loop of propagation of inputs and backpropagation of errors
     // back to the beginning with weights and biases updates as a result
