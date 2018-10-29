@@ -4,9 +4,10 @@
 #include <functional>
 #include "common/calculus_types.h"
 #include "network/activator.h"
+#include "layer_base.h"
 
 template<typename T = double>
-class fully_connected_layer_t {
+class fully_connected_layer_t: public layer_base_t<T> {
 public:
     fully_connected_layer_t(size_t layer_dim, size_t prev_layer_dim,
                             T mean, T stddev,
@@ -22,14 +23,14 @@ public:
     vector_t<T> const &nabla_b() const { return nabla_b_; }
 
 public:
-    vector_t<T> const &feedforward(vector_t<T> const &input) {
+    virtual vector_t<T> const &feedforward(vector_t<T> const &input) override {
         z_ = dot(weights_, input).add(bias_);
         a_ = z_;
         a_.apply(activator_.activator());
         return a_;
     }
 
-    vector_t<T> backpropagate(vector_t<T> const &error) {
+    virtual vector_t<T> backpropagate(vector_t<T> const &error) override {
         // delta(l) = (w(l+1) * delta(l+1)) [X] sigma_deriv(z(l))
         // dC/db = delta(l)
         // dC/dw = a(l-1) * delta(l)

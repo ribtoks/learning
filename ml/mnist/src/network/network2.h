@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <vector>
 #include <tuple>
+#include <memory>
 #include "common/calculus_types.h"
 #include "network/layers/fullyconnectedlayer.h"
 #include "network/activator.h"
@@ -16,7 +17,7 @@ public:
     using training_data = std::vector<std::tuple<v_d, v_d>>;
 
 public:
-    network2_t(std::initializer_list<fully_connected_layer_t<data_type>> layers,
+    network2_t(std::initializer_list<std::shared_ptr<layer_base_t<data_type>>> layers,
                activator_t<data_type> const &activator);
 
 public:
@@ -38,7 +39,7 @@ private:
 
 private:
     //  dimensions of layers
-    std::vector<fully_connected_layer_t<data_type>> layers_;
+    std::vector<std::shared_ptr<layer_base_t<data_type>>> layers_;
     activator_t<data_type> activator_;
 };
 
