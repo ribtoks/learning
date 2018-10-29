@@ -1,7 +1,7 @@
 #include <string>
 #include <exception>
-#include "mnist_dataset.h"
-#include "network.h"
+#include "parsing/mnist_dataset.h"
+#include "network/simple/network.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {

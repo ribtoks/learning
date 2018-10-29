@@ -1,9 +1,9 @@
 #include "mnist_dataset.h"
-#include "parsed_images.h"
-#include "parsed_labels.h"
-#include "log.h"
-#include "cpphelpers.h"
-#include "bmp_image.h"
+#include "parsing/parsed_images.h"
+#include "parsing/parsed_labels.h"
+#include "common/log.h"
+#include "common/cpphelpers.h"
+#include "parsing/bmp_image.h"
 
 mnist_dataset_t::mnist_dataset_t(const std::string &data_root):
     data_root_(data_root)

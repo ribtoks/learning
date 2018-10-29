@@ -1,6 +1,6 @@
 #include "parsed_labels.h"
 #include <exception>
-#include "cpphelpers.h"
+#include "common/cpphelpers.h"
 
 #define MAGIC_NUMBER 0x00000801
 #define LABELS_COUNT 10000

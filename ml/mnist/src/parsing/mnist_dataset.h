@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "calculus_types.h"
+#include "common/calculus_types.h"
 
 class mnist_dataset_t {
 public:

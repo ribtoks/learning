@@ -1,8 +1,8 @@
 #include "network.h"
 #include <algorithm>
 #include <numeric>
-#include "calculus.h"
-#include "log.h"
+#include "common/calculus.h"
+#include "common/log.h"
 
 std::vector<network_t::v_d> copy_shapes(const std::vector<network_t::v_d> &from) {
     std::vector<network_t::v_d> to;
@@ -58,6 +58,8 @@ network_t::network_t(std::initializer_list<int> layers):
     assert(weights_.size() == layers_.size() - 1);
 }
 
+// function used to generate training input for the neural network
+// batches generated with this function are used in update_mini_batch()
 std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
     std::vector<size_t> indices(size, 0);
     std::iota(indices.begin(), indices.end(), 0);
@@ -142,6 +144,8 @@ void network_t::update_mini_batch(const network_t::training_data &data,
 
         backpropagate(input, result, delta_nabla_b, delta_nabla_w);
 
+        // partial derivatives dC/dw and dC/db are averaged
+        // across all training examples (div by minimatch_size later)
         for (size_t i = 0; i < size; i++) {
             nabla_b[i].add(delta_nabla_b[i]);
             nabla_w[i].add(delta_nabla_w[i]);
@@ -150,6 +154,7 @@ void network_t::update_mini_batch(const network_t::training_data &data,
 
     double minibatch_size = indices.size() + 0.0;
     double scale = eta/minibatch_size;
+    // lambda is decay speed hyperparameter
     double decay = 1.0 - eta*lambda/data.size();
 
     // w = w - eta/minibatch_size * gradient_w
@@ -190,6 +195,7 @@ void network_t::backpropagate(const network_t::v_d &input,
     nabla_b[size - 1] = delta;
     nabla_w[size - 1] = dot_transpose(delta, activations[layers_count - 2]);
 
+    // propagating errors backwards
     for (size_t i = 1; i < size; i++) {
         size_t l = size - 1 - i;
         delta = transpose_dot(weights_[l + 1], delta)
@@ -198,7 +204,6 @@ void network_t::backpropagate(const network_t::v_d &input,
         nabla_w[l] = dot_transpose(delta, activations[l]);
     }
 }
-
 
 network_t::v_d &network_t::activate(network_t::v_d &z) const {
     return z.apply(sigmoid);

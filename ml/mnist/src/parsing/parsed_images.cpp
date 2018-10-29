@@ -1,7 +1,7 @@
 #include "parsed_images.h"
 #include <cstdint>
 #include <exception>
-#include "cpphelpers.h"
+#include "common/cpphelpers.h"
 
 #define MAGIC_NUMBER 0x00000803
 #define IMAGES_COUNT 10000

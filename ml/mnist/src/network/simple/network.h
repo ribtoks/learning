@@ -4,7 +4,7 @@
 #include <initializer_list>
 #include <vector>
 #include <tuple>
-#include "calculus_types.h"
+#include "common/calculus_types.h"
 
 class network_t {
 public:

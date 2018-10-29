@@ -4,6 +4,25 @@ project(mnist_training CXX)
 
 set (CMAKE_CXX_STANDARD 11)
 
-set(SOURCES bmp_image.h bmp_image.cpp cpphelpers.h parsed_images.h parsed_images.cpp parsed_labels.h parsed_labels.cpp calculus.h network.h network.cpp mnist_dataset.h mnist_dataset.cpp main.cpp calculus.cpp calculus_types.h log.h log.cpp)
+set(SOURCES
+    parsing/bmp_image.h
+    parsing/bmp_image.cpp
+    common/cpphelpers.h
+    parsing/parsed_images.h
+    parsing/parsed_images.cpp
+    parsing/parsed_labels.h
+    parsing/parsed_labels.cpp
+    common/calculus.h
+    network/simple/network.h
+    network/simple/network.cpp
+    parsing/mnist_dataset.h
+    parsing/mnist_dataset.cpp
+    main.cpp
+    common/calculus.cpp
+    common/calculus_types.h
+    common/log.h
+    common/log.cpp)
 
 add_executable(mnist_training ${SOURCES})
+
+target_include_directories(mnist_training PRIVATE .)
