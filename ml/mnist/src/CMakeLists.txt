@@ -13,8 +13,12 @@ set(SOURCES
     parsing/parsed_labels.h
     parsing/parsed_labels.cpp
     common/calculus.h
-    network/simple/network.h
-    network/simple/network.cpp
+    network/network2.h
+    network/network2.cpp
+    network/network1.h
+    network/network1.cpp
+    network/layers/fullyconnectedlayer.h
+    network/activator.h
     parsing/mnist_dataset.h
     parsing/mnist_dataset.cpp
     main.cpp

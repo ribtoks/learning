@@ -1,11 +1,11 @@
-#include "network.h"
+#include "network1.h"
 #include <algorithm>
 #include <numeric>
 #include "common/calculus.h"
 #include "common/log.h"
 
-std::vector<network_t::v_d> copy_shapes(const std::vector<network_t::v_d> &from) {
-    std::vector<network_t::v_d> to;
+std::vector<network1_t::v_d> copy_shapes(const std::vector<network1_t::v_d> &from) {
+    std::vector<network1_t::v_d> to;
     to.reserve(from.size());
 
     for (auto &v: from) {
@@ -15,8 +15,8 @@ std::vector<network_t::v_d> copy_shapes(const std::vector<network_t::v_d> &from)
     return to;
 }
 
-std::vector<network_t::m_d> copy_shapes(const std::vector<network_t::m_d> &from) {
-    std::vector<network_t::m_d> to;
+std::vector<network1_t::m_d> copy_shapes(const std::vector<network1_t::m_d> &from) {
+    std::vector<network1_t::m_d> to;
     to.reserve(from.size());
 
     for (auto &m: from) {
@@ -26,7 +26,7 @@ std::vector<network_t::m_d> copy_shapes(const std::vector<network_t::m_d> &from)
     return to;
 }
 
-network_t::network_t(std::initializer_list<int> layers):
+network1_t::network1_t(std::initializer_list<int> layers):
     layers_(layers)
 {
     const size_t layers_count = layers_.size();
@@ -74,17 +74,17 @@ std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size) {
     return batches;
 }
 
-void network_t::train_sgd(const training_data &data,
+void network1_t::train_sgd(const training_data &data,
                           size_t epochs,
                           size_t minibatch_size,
                           double eta,
                           double lambda) {
-    // big chunk of data is used for training while 
+    // big chunk of data is used for training while
     // small chunk - for validation after some epochs
     const size_t training_size = 5 * data.size() / 6;
     std::vector<size_t> eval_indices(data.size() - training_size);
     std::iota(eval_indices.begin(), eval_indices.end(), training_size);
-    
+
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
@@ -103,17 +103,17 @@ void network_t::train_sgd(const training_data &data,
     log("End result: %d / %d", result, eval_indices.size());
 }
 
-size_t network_t::evaluate(const training_data &data, const std::vector<size_t> &indices) const {
+size_t network1_t::evaluate(const training_data &data, const std::vector<size_t> &indices) const {
     size_t count = 0;
     for (auto i: indices) {
-        network_t::v_d result = feedforward(std::get<0>(data[i]));
+        network1_t::v_d result = feedforward(std::get<0>(data[i]));
         assert(result.size() == std::get<1>(data[i]).size());
         if (argmax(result) == argmax(std::get<1>(data[i]))) { count++; }
     }
     return count;
 }
 
-network_t::v_d network_t::feedforward(network_t::v_d a) const {
+network1_t::v_d network1_t::feedforward(network1_t::v_d a) const {
     assert(weights_.size() == biases_.size());
     assert(a.size() == layers_[0]);
     const size_t size = weights_.size();
@@ -124,7 +124,7 @@ network_t::v_d network_t::feedforward(network_t::v_d a) const {
     return a;
 }
 
-void network_t::update_mini_batch(const network_t::training_data &data,
+void network1_t::update_mini_batch(const network1_t::training_data &data,
                                   const std::vector<size_t> &indices,
                                   double eta,
                                   double lambda) {
@@ -153,24 +153,26 @@ void network_t::update_mini_batch(const network_t::training_data &data,
     }
 
     double minibatch_size = indices.size() + 0.0;
+    // eta is learning rate
     double scale = eta/minibatch_size;
-    // lambda is decay speed hyperparameter
+    // lambda is decay rate hyperparameter
     double decay = 1.0 - eta*lambda/data.size();
 
+    // general gradient descent formulas:
     // w = w - eta/minibatch_size * gradient_w
-    // b = b - eta/minibatch_size * gradietn_b
+    // b = b - eta/minibatch_size * gradient_b
     for (size_t i = 0; i < size; i++) {
         biases_[i].add(nabla_b[i].mul(-scale));
         weights_[i].mul(decay).add(nabla_w[i].mul(-scale));
     }
 }
 
-void network_t::backpropagate(const network_t::v_d &input,
-                              const network_t::v_d &result,
-                              std::vector<network_t::v_d> &nabla_b,
-                              std::vector<network_t::m_d> &nabla_w) {
-    std::vector<network_t::v_d> zs { };
-    std::vector<network_t::v_d> activations { input };
+void network1_t::backpropagate(const network1_t::v_d &input,
+                              const network1_t::v_d &result,
+                              std::vector<network1_t::v_d> &nabla_b,
+                              std::vector<network1_t::m_d> &nabla_w) {
+    std::vector<network1_t::v_d> zs { };
+    std::vector<network1_t::v_d> activations { input };
     const size_t size = weights_.size();
     const size_t layers_count = layers_.size();
 
@@ -185,7 +187,7 @@ void network_t::backpropagate(const network_t::v_d &input,
     // cross-entropy
     auto delta = cost_derivative(activations.back(), result);
 
-    // quadradic:
+    // MSE:
     //auto delta = cost_derivative(activations.back(), result)
     //    .element_mul(activation_derivative(zs.back()));
 
@@ -199,22 +201,22 @@ void network_t::backpropagate(const network_t::v_d &input,
     for (size_t i = 1; i < size; i++) {
         size_t l = size - 1 - i;
         delta = transpose_dot(weights_[l + 1], delta)
-            .element_mul(activation_derivative(zs[l]));
+                .element_mul(activation_derivative(zs[l]));
         nabla_b[l] = delta;
         nabla_w[l] = dot_transpose(delta, activations[l]);
     }
 }
 
-network_t::v_d &network_t::activate(network_t::v_d &z) const {
+network1_t::v_d &network1_t::activate(network1_t::v_d &z) const {
     return z.apply(sigmoid);
 }
 
-network_t::v_d &network_t::activation_derivative(network_t::v_d &z) const {
+network1_t::v_d &network1_t::activation_derivative(network1_t::v_d &z) const {
     return z.apply(sigmoid_derivative);
 }
 
-network_t::v_d network_t::cost_derivative(const v_d &actual, const v_d &expected) const {
-    network_t::v_d result(actual);
+network1_t::v_d network1_t::cost_derivative(const v_d &actual, const v_d &expected) const {
+    network1_t::v_d result(actual);
     result.subtract(expected);
     return result;
 }
