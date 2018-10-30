@@ -64,6 +64,8 @@ void network2_t::update_mini_batch(const network2_t::training_data &data,
         auto &result = std::get<1>(data[i]);
 
         backpropagate(input, result, algorithm);
+
+		for (auto &l : layers_) { l->reset(); }
     }
 }
 
