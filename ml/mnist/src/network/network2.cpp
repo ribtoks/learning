@@ -63,15 +63,16 @@ void network2_t::update_mini_batch(const network2_t::training_data &data,
         auto &input = std::get<0>(data[i]);
         auto &result = std::get<1>(data[i]);
 
-        backpropagate(input, result, algorithm);
-
-		for (auto &l : layers_) { l->reset(); }
+        backpropagate(input, result);
     }
+
+	// update weights
+	for (auto &layer : layers_) {
+		layer->update_weights(algorithm);
+	}
 }
 
-void network2_t::backpropagate(network2_t::v_d input,
-                               const network2_t::v_d &result,
-                               const optimization_algorithm_t<network2_t::data_type> &algorithm) {
+void network2_t::backpropagate(network2_t::v_d input, const network2_t::v_d &result) {
     const size_t layers_size = layers_.size();
 
     // feedforward input
@@ -83,11 +84,6 @@ void network2_t::backpropagate(network2_t::v_d input,
     network2_t::v_d error = result;
     for (size_t i = layers_size; i-- > 0;) {
         error = layers_[i]->backpropagate(error);
-    }
-
-    // update weights
-    for (auto &layer: layers_) {
-        layer->update_weights(algorithm);
     }
 }
 

@@ -26,7 +26,6 @@ public:
     }
 
     virtual void update_weights(optimization_algorithm_t<T> const &) override {}
-	virtual void reset() override {}
 
 private:
     activator_t<T> const &activator_;

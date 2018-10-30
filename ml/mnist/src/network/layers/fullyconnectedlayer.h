@@ -17,7 +17,6 @@ public:
         weights_(layer_out, layer_in, T(0), T(1)/sqrt((T)layer_in)),
         bias_(layer_out, T(0), T(1)),
         z_(layer_out, 0),
-        a_(layer_out, 0),
 		a_prev_(layer_in, 0),
         nabla_w_(layer_out, layer_in, 0),
         nabla_b_(layer_out, 0),
@@ -28,9 +27,9 @@ public:
     virtual vector_t<T> const &feedforward(vector_t<T> const &input) override {
 		a_prev_ = input;
         z_ = dot(weights_, input).add(bias_);
-        a_ = z_;
-        a_.apply(activator_.activator());
-        return a_;
+        vector_t<T> a = z_;
+        a.apply(activator_.activator());
+        return a;
     }
 
     virtual vector_t<T> backpropagate(vector_t<T> const &error) override {
@@ -50,12 +49,9 @@ public:
     virtual void update_weights(optimization_algorithm_t<T> const &algorithm) override {
         algorithm.update_bias(bias_, nabla_b_);
         algorithm.update_weights(weights_, nabla_w_);
-    }
-
-	virtual void reset() override {
 		nabla_b_.reset(0);
 		nabla_w_.reset(0);
-	}
+    }
 
 private:
     // own data
@@ -64,7 +60,7 @@ private:
     vector_t<T> bias_;
     activator_t<T> const &activator_;
     // calculation support
-    vector_t<T> z_, a_, a_prev_;
+    vector_t<T> z_, a_prev_;
     matrix_t<T> nabla_w_;
     vector_t<T> nabla_b_;
 };

@@ -43,9 +43,7 @@ private:
 
     // runs a loop of propagation of inputs and backpropagation of errors
     // back to the beginning with weights and biases updates as a result
-    void backpropagate(v_d input,
-                       const v_d &result,
-                       const optimization_algorithm_t<data_type> &algorithm);
+    void backpropagate(v_d input, const v_d &result);
 
 private:
     //  dimensions of layers
