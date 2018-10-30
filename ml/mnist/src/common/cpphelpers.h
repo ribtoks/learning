@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdio>
 #include <climits>
+#include <vector>
 
 template<typename... Args>
 std::string string_format( const std::string& format, Args... args )
@@ -34,5 +35,9 @@ T swap_endian(T u)
 
     return dest.u;
 }
+
+// function used to generate training input for the neural network
+// batches generated with this function are used in update_mini_batch()
+std::vector<std::vector<size_t>> batch_indices(size_t size, size_t batch_size);
 
 #endif // CPP_HELPERS_H

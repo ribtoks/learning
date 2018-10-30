@@ -78,5 +78,4 @@ vector_t<T> transpose_dot(const matrix_t<T> &m, const vector_t<T> &v) {
     return output;
 }
 
-
 #endif // CALCULUS_H

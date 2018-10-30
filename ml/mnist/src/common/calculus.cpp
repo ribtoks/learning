@@ -1,4 +1,5 @@
 #include "calculus.h"
+
 #include <cmath>
 
 double sigmoid(double x) {
