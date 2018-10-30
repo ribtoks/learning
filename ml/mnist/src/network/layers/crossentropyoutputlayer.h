@@ -13,7 +13,7 @@ public:
     { }
 
 public:
-    virtual vector_t<T> const &feedforward(vector_t<T> const &input) override {
+    virtual vector_t<T> feedforward(vector_t<T> const &input) override {
         last_activation_ = input;
         return input;
     }

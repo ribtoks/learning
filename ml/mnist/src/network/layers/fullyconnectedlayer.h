@@ -24,7 +24,7 @@ public:
     { }
 
 public:
-    virtual vector_t<T> const &feedforward(vector_t<T> const &input) override {
+    virtual vector_t<T> feedforward(vector_t<T> const &input) override {
 		a_prev_ = input;
         z_ = dot(weights_, input).add(bias_);
         vector_t<T> a = z_;
