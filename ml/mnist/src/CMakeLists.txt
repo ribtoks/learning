@@ -14,8 +14,8 @@ set(SOURCES
     parsing/parsed_labels.h
     parsing/parsed_labels.cpp
     common/calculus.h
-    algorithm/sdg_algorithm.h
-    algorithm/optimization_algorithm.h
+    strategy/sdg_strategy.h
+    strategy/train_strategy.h
     network/network2.h
     network/network2.cpp
     network/network1.h

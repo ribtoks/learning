@@ -7,6 +7,7 @@ double sigmoid(double x);
 double sigmoid_derivative(double x);
 vector_t<double> sigmoid_v(vector_t<double> const &x);
 vector_t<double> sigmoid_derivative_v(vector_t<double> const &x);
+vector_t<double> stable_softmax_v(vector_t<double> const &x);
 
 template<typename T>
 size_t argmax(const vector_t<T> &v) {

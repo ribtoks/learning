@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "algorithm/optimization_algorithm.h"
+#include "strategy/train_strategy.h"
 #include "common/calculus_types.h"
 #include "common/log.h"
 #include "network/activator.h"
@@ -46,9 +46,9 @@ public:
         return delta;
     }
 
-    virtual void update_weights(optimization_algorithm_t<T> const &algorithm) override {
-        algorithm.update_bias(bias_, nabla_b_);
-        algorithm.update_weights(weights_, nabla_w_);
+    virtual void update_weights(train_strategy_t<T> const &strategy) override {
+        strategy.update_bias(bias_, nabla_b_);
+        strategy.update_weights(weights_, nabla_w_);
 		nabla_b_.reset(0);
 		nabla_w_.reset(0);
     }

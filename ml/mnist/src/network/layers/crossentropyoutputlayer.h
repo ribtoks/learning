@@ -4,12 +4,12 @@
 #include "common/calculus_types.h"
 #include "network/activator.h"
 #include "network/layers/layer_base.h"
+#include "strategy/train_strategy.h"
 
 template <typename T>
 class crossentropy_output_layer_t : public layer_base_t<T> {
 public:
-    crossentropy_output_layer_t(activator_t<T> const &activator):
-        activator_(activator)
+    crossentropy_output_layer_t()
     { }
 
 public:
@@ -25,10 +25,9 @@ public:
         return last_activation_;
     }
 
-    virtual void update_weights(optimization_algorithm_t<T> const &) override {}
+    virtual void update_weights(train_strategy_t<T> const &) override {}
 
 private:
-    activator_t<T> const &activator_;
     vector_t<T> last_activation_;
 };
 

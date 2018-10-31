@@ -12,7 +12,7 @@ network2_t::network2_t(std::initializer_list<network2_t::layer_type> layers):
 { }
 
 void network2_t::train(const network2_t::training_data &data,
-                       const optimization_algorithm_t<network2_t::data_type> &algorithm,
+                       const train_strategy_t<data_type> &strategy,
                        size_t epochs,
                        size_t minibatch_size) {
     // big chunk of data is used for training while
@@ -24,7 +24,7 @@ void network2_t::train(const network2_t::training_data &data,
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
-            update_mini_batch(data, indices, algorithm);
+            update_mini_batch(data, indices, strategy);
         }
 
         if (j % 2 == 0) {
@@ -58,7 +58,7 @@ size_t network2_t::evaluate(const network2_t::training_data &data, const std::ve
 
 void network2_t::update_mini_batch(const network2_t::training_data &data,
                                    const std::vector<size_t> &indices,
-                                   const optimization_algorithm_t<network2_t::data_type> &algorithm) {
+                                   const train_strategy_t<data_type> &strategy) {
     for (auto i: indices) {
         auto &input = std::get<0>(data[i]);
         auto &result = std::get<1>(data[i]);
@@ -67,7 +67,7 @@ void network2_t::update_mini_batch(const network2_t::training_data &data,
     }
 
     for (auto &layer: layers_) {
-		layer->update_weights(algorithm);
+        layer->update_weights(strategy);
 	}
 }
 

@@ -4,9 +4,9 @@
 #include "common/calculus_types.h"
 
 template <typename T>
-class optimization_algorithm_t {
+class train_strategy_t {
 public:
-    virtual ~optimization_algorithm_t() {}
+    virtual ~train_strategy_t() {}
     virtual void update_bias(vector_t<T> &b, vector_t<T> &nabla_b) const = 0;
     virtual void update_weights(matrix_t<T> &w, matrix_t<T> &nabla_w) const = 0;
 };

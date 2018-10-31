@@ -1,12 +1,12 @@
 #ifndef SDG_ALGO_H
 #define SDG_ALGO_H
 
-#include "algorithm/optimization_algorithm.h"
+#include "strategy/train_strategy.h"
 
 template <typename T>
-class sdg_algorithm_t: public optimization_algorithm_t<T> {
+class sdg_strategy_t: public train_strategy_t<T> {
 public:
-    sdg_algorithm_t(size_t minibatch_size,
+    sdg_strategy_t(size_t minibatch_size,
                     size_t input_size,
                     T decay_rate,
                     T learning_rate):
