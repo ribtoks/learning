@@ -11,11 +11,11 @@
 #include "parsing/mnist_dataset.h"
 
 int main(int argc, char* argv[]) {
-    //if (argc != 2) {
-    //    throw std::runtime_error("Data root not specified through the command line");
-    //}
+    if (argc != 2) {
+        throw std::runtime_error("Data root not specified through the command line");
+    }
     
-    std::string data_root("C:\\Users\\takushni\\Projects\\others\\learning\\ml\\mnist\\data\\");
+    std::string data_root(argv[1]);
     mnist_dataset_t mnist_dataset(data_root);
 
     size_t mini_batch_size = 10;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
                 std::initializer_list<network2_t::layer_type>(
     {
                         std::make_shared<fully_connected_layer_t<double>>(28*28, 30, sigmoid_activator),
-                        std::make_shared<fully_connected_layer_t<double>>(30, 10, sigmoid_activator),
+                        std::make_shared<fully_connected_layer_t<double>>(30, 10, sigmoid_activator, true),
                         std::make_shared<crossentropy_output_layer_t<double>>(sigmoid_activator)}));
 
     size_t epochs = 30;

@@ -5,6 +5,7 @@
 
 #include "algorithm/optimization_algorithm.h"
 #include "common/calculus_types.h"
+#include "common/log.h"
 #include "network/activator.h"
 #include "network/layers/layer_base.h"
 
@@ -25,15 +26,17 @@ public:
 
 public:
     virtual vector_t<T> feedforward(vector_t<T> const &input) override {
-		a_prev_ = input;
+        a_prev_ = input;
+        // z = w*a + b
         z_ = dot(weights_, input).add(bias_);
-        vector_t<T> a = z_;
+        vector_t<T> a(z_);
+        // a = activator(z)
         a.apply(activator_.activator());
         return a;
     }
 
     virtual vector_t<T> backpropagate(vector_t<T> const &error) override {
-        // delta(l) = (w(l+1) * delta(l+1)) [X] activation_deriv(z(l))
+        // delta(l) = (w(l+1) * delta(l+1)) [X] activation_derivative(z(l))
         // (w(l+1) * delta(l+1)) comes as the gradient (error) from the "previous" layer
         vector_t<T> delta = z_.apply(activator_.derivative()).element_mul(error);
         // dC/db = delta(l)
@@ -41,7 +44,7 @@ public:
         // dC/dw = a(l-1) * delta(l)
 		auto delta_nabla_w = dot_transpose(delta, a_prev_);
         nabla_w_.add(delta_nabla_w);
-        // gradient for the next layer
+        // gradient for the next layer w(l+1) * delta(l+1)
         delta = transpose_dot(weights_, delta);
         return delta;
     }

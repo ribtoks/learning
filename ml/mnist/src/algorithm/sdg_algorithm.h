@@ -17,15 +17,17 @@ public:
     {}
 
 public:
-    virtual void update_bias(vector_t<T> &v, vector_t<T> &nabla_v) const override {
+    virtual void update_bias(vector_t<T> &b, vector_t<T> &nabla_b) const override {
+        // b = b - eta/minibatch_size * gradient_b
         T scale = learning_rate_ / (T)minibatch_size_;
-        v.add(nabla_v.mul(-scale));
+        b.add(nabla_b.mul(-scale));
     }
 
     virtual void update_weights(matrix_t<T> &w, matrix_t<T> &nabla_w) const override {
+        // w = w - eta/minibatch_size * gradient_w
         T scale = learning_rate_;
         T decay = T(1) - learning_rate_*weight_decay_ / (T)input_size_;
-        w.mul(weight_decay_).add(nabla_w.mul(-scale));
+        w.mul(decay).add(nabla_w.mul(-scale));
     }
 
 private:

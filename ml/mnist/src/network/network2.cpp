@@ -66,7 +66,7 @@ void network2_t::update_mini_batch(const network2_t::training_data &data,
         backpropagate(input, result);
     }
 
-	for (auto &layer : layers_) {
+    for (auto &layer: layers_) {
 		layer->update_weights(algorithm);
 	}
 }
