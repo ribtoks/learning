@@ -29,20 +29,17 @@ public:
         a_prev_ = input;
         // z = w*a + b
         z_ = dot(weights_, input).add(bias_);
-        vector_t<T> a(z_);
-        // a = activator(z)
-        a.apply(activator_.activator());
-        return a;
+        return activator_.activate(z_);
     }
 
     virtual vector_t<T> backpropagate(vector_t<T> const &error) override {
         // delta(l) = (w(l+1) * delta(l+1)) [X] activation_derivative(z(l))
         // (w(l+1) * delta(l+1)) comes as the gradient (error) from the "previous" layer
-        vector_t<T> delta = z_.apply(activator_.derivative()).element_mul(error);
+        vector_t<T> delta = activator_.activation_derivative(z_).element_mul(error);
         // dC/db = delta(l)
         nabla_b_.add(delta);
         // dC/dw = a(l-1) * delta(l)
-		auto delta_nabla_w = dot_transpose(delta, a_prev_);
+        auto delta_nabla_w = dot_transpose(delta, a_prev_);
         nabla_w_.add(delta_nabla_w);
         // gradient for the next layer w(l+1) * delta(l+1)
         delta = transpose_dot(weights_, delta);

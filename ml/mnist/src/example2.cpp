@@ -4,6 +4,7 @@
 
 #include "algorithm/sdg_algorithm.h"
 #include "common/calculus.h"
+#include "common/calculus_types.h"
 #include "network/activator.h"
 #include "network/layers/crossentropyoutputlayer.h"
 #include "network/layers/fullyconnectedlayer.h"
@@ -19,11 +20,13 @@ int main(int argc, char* argv[]) {
     mnist_dataset_t mnist_dataset(data_root);
 
     size_t mini_batch_size = 10;
-    double learning_rate = 0.5;
-    double decay_rate = 5.0;
+    double learning_rate = 0.1;
+    double decay_rate = 20.0;
 
     auto training_data = mnist_dataset.training_data();
-    activator_t<double> sigmoid_activator(sigmoid, sigmoid_derivative);
+    activator_t<double> sigmoid_activator(sigmoid_v, sigmoid_derivative_v);
+    activator_t<double> last_layer_activator(sigmoid_v,
+                                             [](vector_t<double> const &x){return vector_t<double>(x.size(), 1.0);});
     sdg_algorithm_t<double> sdg_algorithm(mini_batch_size,
                                           training_data.size(),
                                           decay_rate,
@@ -32,7 +35,7 @@ int main(int argc, char* argv[]) {
                 std::initializer_list<network2_t::layer_type>(
     {
                         std::make_shared<fully_connected_layer_t<double>>(28*28, 30, sigmoid_activator),
-                        std::make_shared<fully_connected_layer_t<double>>(30, 10, sigmoid_activator, true),
+                        std::make_shared<fully_connected_layer_t<double>>(30, 10, last_layer_activator),
                         std::make_shared<crossentropy_output_layer_t<double>>(sigmoid_activator)}));
 
     size_t epochs = 30;
