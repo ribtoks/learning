@@ -14,11 +14,11 @@ double sigmoid_derivative(double x) {
 vector_t<double> sigmoid_v(const vector_t<double> &x) {
     vector_t<double> result(x);
     result.apply(sigmoid);
-    return x;
+    return result;
 }
 
 vector_t<double> sigmoid_derivative_v(const vector_t<double> &x) {
     vector_t<double> result(x);
     result.apply(sigmoid_derivative);
-    return x;
+    return result;
 }
