@@ -6,8 +6,8 @@
 #include "common/calculus.h"
 #include "common/calculus_types.h"
 #include "network/activator.h"
-#include "network/layers/crossentropyoutputlayer.h"
-#include "network/layers/fullyconnectedlayer.h"
+#include "layers/crossentropyoutputlayer.h"
+#include "layers/fullyconnectedlayer.h"
 #include "network/network2.h"
 #include "parsing/mnist_dataset.h"
 
@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     mnist_dataset_t mnist_dataset(data_root);
 
     size_t mini_batch_size = 10;
-    double learning_rate = 0.02;
+    double learning_rate = 0.008;
     double decay_rate = 20.0;
 
     auto training_data = mnist_dataset.training_data();
@@ -35,11 +35,11 @@ int main(int argc, char* argv[]) {
     network2_t network(
                 std::initializer_list<network2_t::layer_type>(
     {
-                        std::make_shared<fully_connected_layer_t<double>>(28*28, 30, sigmoid_activator),
-                        std::make_shared<fully_connected_layer_t<double>>(30, 10, softmax_activator),
+                        std::make_shared<fully_connected_layer_t<double>>(28*28, 100, sigmoid_activator),
+                        std::make_shared<fully_connected_layer_t<double>>(100, 10, softmax_activator),
                         std::make_shared<crossentropy_output_layer_t<double>>()}));
 
-    size_t epochs = 30;
+    size_t epochs = 60;
 
     network.train(training_data,
                   sdg_strategy,

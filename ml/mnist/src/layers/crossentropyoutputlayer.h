@@ -3,7 +3,7 @@
 
 #include "common/calculus_types.h"
 #include "network/activator.h"
-#include "network/layers/layer_base.h"
+#include "layers/layer_base.h"
 #include "strategy/train_strategy.h"
 
 template <typename T>

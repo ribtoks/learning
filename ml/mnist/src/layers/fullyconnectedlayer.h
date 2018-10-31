@@ -7,7 +7,7 @@
 #include "common/calculus_types.h"
 #include "common/log.h"
 #include "network/activator.h"
-#include "network/layers/layer_base.h"
+#include "layers/layer_base.h"
 
 template<typename T = double>
 class fully_connected_layer_t: public layer_base_t<T> {

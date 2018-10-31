@@ -8,7 +8,7 @@
 
 #include "strategy/train_strategy.h"
 #include "common/calculus_types.h"
-#include "network/layers/fullyconnectedlayer.h"
+#include "layers/fullyconnectedlayer.h"
 #include "network/activator.h"
 
 class network2_t {

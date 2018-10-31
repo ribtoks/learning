@@ -68,7 +68,7 @@ void network2_t::update_mini_batch(const network2_t::training_data &data,
 
     for (auto &layer: layers_) {
         layer->update_weights(strategy);
-	}
+    }
 }
 
 void network2_t::backpropagate(network2_t::v_d input, const network2_t::v_d &result) {

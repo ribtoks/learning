@@ -20,9 +20,10 @@ set(SOURCES
     network/network2.cpp
     network/network1.h
     network/network1.cpp
-    network/layers/fullyconnectedlayer.h
-    network/layers/crossentropyoutputlayer.h
-    network/layers/layer_base.h
+    layers/fullyconnectedlayer.h
+    layers/crossentropyoutputlayer.h
+    layers/convolutionlayer.h
+    layers/layer_base.h
     network/activator.h
     parsing/mnist_dataset.h
     parsing/mnist_dataset.cpp
