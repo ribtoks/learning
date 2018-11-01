@@ -28,7 +28,7 @@ size_t argmax1d(array3d_t<T> const &v) {
 }
 
 template<typename T>
-T dot_1d(typename array3d_t<T>::slice3d &a, typename array3d_t<T>::slice3d &b) {
+T dot_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
     assert(a.shape().size() == b.shape().size());
     assert(a.shape().size() == 1);
     assert(a.size() == b.size());
@@ -41,21 +41,20 @@ T dot_1d(typename array3d_t<T>::slice3d &a, typename array3d_t<T>::slice3d &b) {
 }
 
 template<typename T>
-array3d_t<T> dot_2d_1d(typename array3d_t<T>::slice3d &m, typename array3d_t<T>::slice3d &v) {
+array3d_t<T> dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(m.shape().size() == 2);
     assert(v.shape().size() == 1);
     assert(m.shape().x() == v.shape().x());
     const size_t height = m.shape().y();
     array3d_t<T> result(shape3d_t(height, 0, 0), 0);
-    auto output = result.array();
     for (size_t i = 0; i < height; i++) {
-        output(i) = dot_1d(m.slice(index3d_t::Y, i), v);
+        result(i) = dot_1d(m.slice(index3d_t::Y, i, i), v);
     }
-    return output;
+    return result;
 }
 
 template<typename T>
-array3d_t<T> dot_transpose_1d(typename array3d_t<T>::slice3d &a, typename array3d_t<T>::slice3d &b) {
+array3d_t<T> dot_transpose_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
     assert(a.shape().size() == b.shape().size());
     assert(a.shape().size() == 1);
     assert(a.size() == b.size());
@@ -63,8 +62,7 @@ array3d_t<T> dot_transpose_1d(typename array3d_t<T>::slice3d &a, typename array3
     const size_t height = a.shape().x();
     const size_t width = b.shape().x();
 
-    array3d_t<T> result(shape3d_t(width, height, 1), 0);
-    auto c = result.array();
+    array3d_t<T> c(shape3d_t(width, height, 1), 0);
 
     for (size_t i = 0; i < height; i++) {
         for (size_t j = 0; j < width; j++) {
@@ -72,62 +70,47 @@ array3d_t<T> dot_transpose_1d(typename array3d_t<T>::slice3d &a, typename array3
         }
     }
 
-    return result;
+    return c;
 }
 
 template<typename T>
-array3d_t<T> transpose_dot_2d_1d(typename array3d_t<T>::slice3d &m, typename array3d_t<T>::slice3d &v) {
+array3d_t<T> transpose_dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(m.shape().size() == 2);
     assert(v.shape().size() == 1);
     assert(m.shape().y() == v.shape().x());
 
     const size_t width = m.shape().x();
     const size_t height = m.shape().y();
-    auto sm = m.array();
     array3d_t<T> output(shape3d_t(width, 1, 1), 0);
-    auto result = output.array();
 
     for (size_t i = 0; i < width; i++) {
         T sum = 0;
         for (size_t j = 0; j < height; j++) {
-            sum += sm(i, j) * v(j);
+            sum += m(i, j) * v(j);
         }
-        result(i) = sum;
+        output(i) = sum;
     }
 
     return output;
 }
 
 template<typename T>
-array3d_t<T> dot(array3d_t<T> &a, array3d_t<T> &b) {
+array3d_t<T> dot_transpose(array3d_t<T> const &a, array3d_t<T> const &b) {
     auto &sa = a.shape();
     auto &sb = b.shape();
     if (sa.size() == 1 && sb.size() == 1) {
-        return dot_1d(a.slice(), b.slice());
-    } else if (sa.size() == 2 && sb.size() == 1) {
-        return dot_2d_1d(a.slice(), b.slice());
+        return dot_transpose_1d(a, b);
     } else {
         throw std::runtime_error("dot product not supported for such dimensions");
     }
 }
 
 template<typename T>
-array3d_t<T> dot_transpose(array3d_t<T> &a, array3d_t<T> &b) {
-    auto &sa = a.shape();
-    auto &sb = b.shape();
-    if (sa.size() == 1 && sb.size() == 1) {
-        return dot_transpose_1d(a.slice(), b.slice());
-    } else {
-        throw std::runtime_error("dot product not supported for such dimensions");
-    }
-}
-
-template<typename T>
-array3d_t<T> transpose_dot(array3d_t<T> &m, array3d_t<T> &v) {
+array3d_t<T> transpose_dot(array3d_t<T> const &m, array3d_t<T> const &v) {
     auto &sa = m.shape();
     auto &sb = v.shape();
     if (sa.size() == 2 && sb.size() == 1) {
-        return dot_transpose_1d(m.slice(), v.slice());
+        return dot_transpose_1d(m, v);
     } else {
         throw std::runtime_error("dot product not supported for such dimensions");
     }

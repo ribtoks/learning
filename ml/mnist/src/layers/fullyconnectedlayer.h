@@ -34,7 +34,7 @@ public:
     virtual layer_input_t<T> feedforward(layer_input_t<T> const &input) override {
         a_prev_ = input.data;
         // z = w*a + b
-        z_ = dot(weights_, a_prev_).add(bias_);
+        z_ = dot_2d_1d(weights_, a_prev_).add(bias_);
         auto a = activator_.activate(z_);
         return layer_input_t<T>(a);
     }

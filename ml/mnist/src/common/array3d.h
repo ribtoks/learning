@@ -15,120 +15,6 @@
 template<typename T>
 class array3d_t {
 public:
-    class slice3d {
-    public:
-        slice3d(array3d_t<T> &array,
-                index3d_t const &start,
-                index3d_t const &end):
-            array_(array),
-            shape_(DIM(end.x(), start.x()),
-                   DIM(end.y(), start.y()),
-                   DIM(end.z(), start.z())),
-            start_(start),
-            end_(end)
-        { }
-
-    public:
-        T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
-        T &operator()(size_t x, size_t y) { return at(x, y, 0); }
-        T &operator()(size_t x) { return at(x, 0, 0); }
-        array3d_t<T> &array() { return array_; }
-        shape3d_t const &shape() const { return shape_; }
-        size_t size() const {
-            return DIM(start_.x(), end_.x()) *
-                    DIM(start_.y(), end_.y()) *
-                    DIM(start_.z(), end_.z());
-        }
-
-    public:
-        slice3d &mul(const T &a) {
-            index3d_iterator it(start_, end_);
-            for (; it.is_valid(); ++it) {
-                at(*it) *= a;
-            }
-            return *this;
-        }
-
-        slice3d &element_mul(slice3d const &other) {
-            assert(other.shape() == shape_);
-
-            index3d_iterator it(start_, end_);
-            index3d_iterator ito(other.start_, other.end_);
-
-            for (; it.is_valid() && ito.is_valid();
-                 ++it, ++ito) {
-                at(*it) *= other.at(*ito);
-            }
-
-            return *this;
-        }
-
-        slice3d &add(slice3d const &other) {
-            assert(other.shape() == shape_);
-
-            index3d_iterator it(start_, end_);
-            index3d_iterator ito(other.start_, other.end_);
-
-            for (; it.is_valid() && ito.is_valid();
-                 ++it, ++ito) {
-                at(*it) += other.at(*ito);
-            }
-
-            return *this;
-        }
-
-        slice3d &subtract(slice3d const &other) {
-            assert(other.shape() == shape_);
-
-            index3d_iterator it(start_, end_);
-            index3d_iterator ito(other.start_, other.end_);
-
-            for (; it.is_valid() && ito.is_valid();
-                 ++it, ++ito) {
-                at(*it) -= other.at(*ito);
-            }
-
-            return *this;
-        }
-
-        slice3d &apply(const std::function<T(const T&)> &f) {
-            index3d_iterator it(start_, end_);
-            for (; it.is_valid(); ++it) {
-                T &v = at(*it);
-                v = f(v);
-            }
-            return *this;
-        }
-
-        void reset(const T &a) {
-            index3d_iterator it(start_, end_);
-            for (; it.is_valid(); ++it) {
-                at(*it) = a;
-            }
-        }
-
-        slice3d slice(index3d_t::dim d, size_t start, size_t end) {
-            return slice3d(array_,
-                           start_.inc(d, start),
-                           end_.set(d, start_.v(d) + end));
-        }
-
-    private:
-        inline size_t array_index(size_t x, size_t y, size_t z) {
-            return array_.shape_.index(start_) + shape_.index(x, y, z);
-        }
-
-        inline T &at(size_t x, size_t y, size_t z) { return array_.v_.at(array_index(x, y, z)); }
-        inline T &at(index3d_t const &i) { return array_.v_.at(array_.shape_.index(i)); }
-
-    private:
-        array3d_t<T> &array_;
-        shape3d_t shape_;
-        index3d_t start_;
-        index3d_t end_;
-    };
-
-public:
     array3d_t():
         shape_(0, 0, 0)
     {}
@@ -162,6 +48,11 @@ public:
         v_(std::move(other.v_))
     {}
 
+    array3d_t(shape3d_t const &shape, std::vector<T> const &v):
+        shape_(shape),
+        v_(v)
+    {}
+
     template<typename Q>
     array3d_t(const std::vector<Q> &other):
         shape_(other.size(), 1, 1)
@@ -174,19 +65,29 @@ public:
     }
 
 public:
-    shape3d_t const &shape() const { return shape_; }
-    size_t size() const { return v_.size(); }
-    slice3d slice() { return slice3d(*this,
-                                     index3d_t(0, 0, 0),
-                                     index3d_t(shape_.x(), shape_.y(), shape_.z())); }
-
-    slice3d slice(index3d_t const &start,
-                  index3d_t const &end) { return slice3d(*this, start, end); }
-
-    slice3d slice(index3d_t::dim d, size_t start, size_t end) {
-        return slice().slice(d, start, end);
+    array3d_t<T> slice(index3d_t const &start,
+                       index3d_t const &end) const {
+        shape3d_t shape(DIM(end.x(), start.x()),
+                        DIM(end.y(), start.y()),
+                        DIM(end.z(), start.z()));
+        std::vector<T> v(shape.capacity(), T(0));
+        index3d_iterator it(start, end);
+        for (size_t i = 0; it.is_valid(); ++it, ++i) {
+            v[i] = v_[shape_.index(*it)];
+        }
+        return array3d_t<T>(shape, v);
     }
 
+    array3d_t slice(index3d_t::dim d, size_t start, size_t end) const {
+        index3d_t istart(0, 0, 0);
+        index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
+        return slice(istart.inc(d, start),
+                     iend.set(d, istart.v(d) + end));
+    }
+
+public:
+    shape3d_t const &shape() const { return shape_; }
+    size_t size() const { return v_.size(); }
     inline T &at(size_t x, size_t y, size_t z) { return v_.at(shape_.index(x, y, z)); }
     T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
     T &operator()(size_t x, size_t y) { return at(x, y, 0); }
@@ -209,11 +110,55 @@ public:
         return *this;
     }
 
-    array3d_t<T> &add(array3d_t<T> const &other) { slice().add(other.slice()); return *this; }
-    array3d_t<T> &subtract(array3d_t<T> const &other) { slice().subtract(other.slice()); return *this; }
-    array3d_t<T> &mul(const T &a) { slice().mul(a); return *this; }
-    array3d_t<T> &element_mul(array3d_t<T> const &other) { slice().element_mul(other.slice()); }
-    void reset(T const a) { slice().reset(a); }
+    array3d_t<T> &mul(const T &a) {
+        for (auto &v: v_) { v *= a; }
+        return *this;
+    }
+
+    array3d_t<T> &element_mul(array3d_t<T> const &other) {
+        assert(other.shape() == shape_);
+        assert(v_.size() == other.v_.size());
+
+        const size_t size = v_.size();
+        for (size_t i = 0; i < size; i++) {
+            v_[i] *= other.v_[i];
+        }
+
+        return *this;
+    }
+
+    array3d_t<T> &add(array3d_t<T> const &other) {
+        assert(other.shape() == shape_);
+        assert(v_.size() == other.v_.size());
+
+        const size_t size = v_.size();
+        for (size_t i = 0; i < size; i++) {
+            v_[i] += other.v_[i];
+        }
+
+        return *this;
+    }
+
+    array3d_t<T> &subtract(array3d_t<T> const &other) {
+        assert(other.shape() == shape_);
+        assert(v_.size() == other.v_.size());
+
+        const size_t size = v_.size();
+        for (size_t i = 0; i < size; i++) {
+            v_[i] -= other.v_[i];
+        }
+
+        return *this;
+    }
+
+    array3d_t<T> &apply(const std::function<T(const T&)> &f) {
+        std::transform(v_.begin(), v_.end(), v_.begin(), f);
+        return *this;
+    }
+
+    void reset(const T &a) {
+        std::fill(v_.begin(), v_.end(), a);
+    }
 
 private:
     shape3d_t shape_;

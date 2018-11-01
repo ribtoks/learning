@@ -105,13 +105,14 @@ public:
         start_(start),
         end_(end),
         current_(start),
-        moves_(0)
+        moves_(0),
+        moves_max_(DIM(start.x(), end.x()) *
+                   DIM(start.y(), end.y()) *
+                   DIM(start.z(), end.z()))
     {}
 
 public:
-    bool is_valid() const { return moves_ < (DIM(start_.x(), end_.x()) *
-                                             DIM(start_.y(), end_.y()) *
-                                             DIM(start_.z(), end_.z())); }
+    bool is_valid() const { return moves_ < moves_max_; }
     index3d_iterator& operator++() { move_next(); return *this; }
     index3d_t &operator*() { return current_; }
     index3d_t const &operator*() const { return current_; }
@@ -134,6 +135,7 @@ private:
     index3d_t end_;
     index3d_t current_;
     size_t moves_;
+    size_t moves_max_;
 };
 
 #endif // SHAPE_H

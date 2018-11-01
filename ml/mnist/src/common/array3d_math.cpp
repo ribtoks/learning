@@ -11,17 +11,17 @@ double sigmoid_derivative(double x) {
     return sigmoid_x * (1.0 - sigmoid_x);
 }
 
-array3d_t<double> sigmoid_v(const array3d_t<double> &x) {
+array3d_t<double> sigmoid_v(array3d_t<double> const &x) {
     assert(x.shape().size() == 1);
     array3d_t<double> result(x);
-    result.slice().apply(sigmoid);
+    result.apply(sigmoid);
     return result;
 }
 
-array3d_t<double> sigmoid_derivative_v(const array3d_t<double> &x) {
+array3d_t<double> sigmoid_derivative_v(array3d_t<double> const &x) {
     assert(x.shape().size() == 1);
     array3d_t<double> result(x);
-    result.slice().apply(sigmoid_derivative);
+    result.apply(sigmoid_derivative);
     return result;
 }
 
