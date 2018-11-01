@@ -3,7 +3,7 @@
 
 #include "common/calculus_types.h"
 #include "layers/layer_base.h"
-
+/*
 template<typename T>
 class convolution_layer_t: public layer_base_t<T> {
 public:
@@ -22,6 +22,6 @@ public:
     virtual void update_weights(train_strategy_t<T> const &) override {
 
     }
-};
+};*/
 
 #endif // CONVOLUTIONLAYER_H

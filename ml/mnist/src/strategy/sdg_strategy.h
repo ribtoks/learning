@@ -1,6 +1,7 @@
 #ifndef SDG_ALGO_H
 #define SDG_ALGO_H
 
+#include "common/array3d.h"
 #include "strategy/train_strategy.h"
 
 template <typename T>
@@ -17,13 +18,13 @@ public:
     {}
 
 public:
-    virtual void update_bias(vector_t<T> &b, vector_t<T> &nabla_b) const override {
+    virtual void update_bias(array3d_t<T> &b, array3d_t<T> &nabla_b) const override {
         // b = b - eta/minibatch_size * gradient_b
         T scale = learning_rate_ / (T)minibatch_size_;
         b.add(nabla_b.mul(-scale));
     }
 
-    virtual void update_weights(matrix_t<T> &w, matrix_t<T> &nabla_w) const override {
+    virtual void update_weights(array3d_t<T> &w, array3d_t<T> &nabla_w) const override {
         // w = w - eta/minibatch_size * gradient_w
         T scale = learning_rate_;
         T decay = T(1) - learning_rate_*weight_decay_ / (T)input_size_;

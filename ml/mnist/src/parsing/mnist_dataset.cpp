@@ -1,8 +1,9 @@
 #include "mnist_dataset.h"
+#include "common/array3d.h"
+#include "common/cpphelpers.h"
+#include "common/log.h"
 #include "parsing/parsed_images.h"
 #include "parsing/parsed_labels.h"
-#include "common/log.h"
-#include "common/cpphelpers.h"
 #include "parsing/bmp_image.h"
 
 mnist_dataset_t::mnist_dataset_t(const std::string &data_root):
@@ -10,7 +11,7 @@ mnist_dataset_t::mnist_dataset_t(const std::string &data_root):
 {    
 }
 
-std::vector<std::tuple<vector_t<double>, vector_t<double>>> mnist_dataset_t::training_data(int limit) {
+std::vector<std::tuple<array3d_t<double>, array3d_t<double>>> mnist_dataset_t::training_data(int limit) {
     parsed_images_t parsed_images(data_root_ + "train-images-idx3-ubyte");
     auto itImg = parsed_images.begin();
     auto itImgEnd = parsed_images.end();
@@ -19,15 +20,15 @@ std::vector<std::tuple<vector_t<double>, vector_t<double>>> mnist_dataset_t::tra
     auto itLbl = parsed_labels.begin();
     auto itLblEnd = parsed_labels.end();
 
-    std::vector<std::tuple<vector_t<double>, vector_t<double>>> data;
+    std::vector<std::tuple<array3d_t<double>, array3d_t<double>>> data;
     const size_t count_limit = limit == -1 ? parsed_images.size() : limit;
     data.reserve(count_limit);
 
     for (;
          itImg != itImgEnd && itLbl != itLblEnd;
          ++itImg, ++itLbl) {
-        vector_t<double> input(*itImg); input.mul(1.0 / 255.0);
-        vector_t<double> result(10, 0.0); result[*itLbl] = 1.0;
+        array3d_t<double> input(*itImg); input.mul(1.0 / 255.0);
+        array3d_t<double> result(shape3d_t(10, 1, 1), 0.0); result.at(*itLbl, 0, 0) = 1.0;
 
         data.emplace_back(input, result);
 

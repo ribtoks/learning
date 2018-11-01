@@ -7,30 +7,36 @@ set (CMAKE_CXX_STANDARD 11)
 set(SOURCES
     parsing/bmp_image.h
     parsing/bmp_image.cpp
-    common/cpphelpers.h
-    common/cpphelpers.cpp
     parsing/parsed_images.h
     parsing/parsed_images.cpp
     parsing/parsed_labels.h
     parsing/parsed_labels.cpp
-    common/calculus.h
+#    common/calculus.h
+#    common/calculus.cpp
+#    common/calculus_types.h
+    common/cpphelpers.h
+    common/cpphelpers.cpp
+    common/shape.h
+    common/array3d.h
+    common/array3d_math.h
+    common/array3d_math.cpp
+    common/log.h
+    common/log.cpp
     strategy/sdg_strategy.h
     strategy/train_strategy.h
     network/network2.h
     network/network2.cpp
-    network/network1.h
-    network/network1.cpp
+#    network/network1.h
+#    network/network1.cpp
     layers/fullyconnectedlayer.h
     layers/crossentropyoutputlayer.h
     layers/convolutionlayer.h
     layers/layer_base.h
+    layers/input.h
+    layers/error.h
     network/activator.h
     parsing/mnist_dataset.h
-    parsing/mnist_dataset.cpp
-    common/calculus.cpp
-    common/calculus_types.h
-    common/log.h
-    common/log.cpp)
+    parsing/mnist_dataset.cpp)
 
 #add_executable(example1 ${SOURCES} example1.cpp)
 add_executable(example2 ${SOURCES} example2.cpp)

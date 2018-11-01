@@ -6,13 +6,6 @@
 #include <cassert>
 #include <functional>
 
-struct shape_t {
-    size_t x;
-    size_t y;
-    size_t z;
-    size_t d;
-};
-
 template<typename T>
 class matrix_t;
 
