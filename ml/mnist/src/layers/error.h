@@ -9,6 +9,10 @@ struct layer_error_t {
         data(std::move(other))
     {}
 
+    layer_error_t(array3d_t<T> const &other):
+        data(other)
+    {}
+
     array3d_t<T> data;
 };
 

@@ -18,14 +18,14 @@ public:
                             activator_t<T> const &activator):
         dimension_(layer_out),
         weights_(
-            shape3d_t(layer_out, layer_in, 1),
+            shape3d_t(layer_in, layer_out, 1),
             T(0), T(1)/sqrt((T)layer_in)),
         bias_(
             shape3d_t(layer_out, 1, 1),
             T(0), T(1)),
         z_(shape3d_t(layer_out, 1, 1), 0),
         a_prev_(shape3d_t(layer_in, 1, 1), 0),
-        nabla_w_(shape3d_t(layer_out, layer_in, 1), 0),
+        nabla_w_(shape3d_t(layer_in, layer_out, 1), 0),
         nabla_b_(shape3d_t(layer_out, 1, 1), 0),
         activator_(activator)
     { }

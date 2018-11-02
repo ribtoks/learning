@@ -46,9 +46,10 @@ array3d_t<T> dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(v.shape().size() == 1);
     assert(m.shape().x() == v.shape().x());
     const size_t height = m.shape().y();
-    array3d_t<T> result(shape3d_t(height, 0, 0), 0);
+    array3d_t<T> result(shape3d_t(height, 1, 1), 0);
     for (size_t i = 0; i < height; i++) {
-        result(i) = dot_1d(m.slice(index3d_t::Y, i, i), v);
+        auto row = m.slice(index3d_t::Y, i, i);
+        result(i) = dot_1d(row, v);
     }
     return result;
 }
@@ -57,7 +58,6 @@ template<typename T>
 array3d_t<T> dot_transpose_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
     assert(a.shape().size() == b.shape().size());
     assert(a.shape().size() == 1);
-    assert(a.size() == b.size());
 
     const size_t height = a.shape().x();
     const size_t width = b.shape().x();
@@ -110,7 +110,7 @@ array3d_t<T> transpose_dot(array3d_t<T> const &m, array3d_t<T> const &v) {
     auto &sa = m.shape();
     auto &sb = v.shape();
     if (sa.size() == 2 && sb.size() == 1) {
-        return dot_transpose_1d(m, v);
+        return transpose_dot_2d_1d(m, v);
     } else {
         throw std::runtime_error("dot product not supported for such dimensions");
     }

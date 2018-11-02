@@ -82,9 +82,9 @@ public:
 
 public:
     inline size_t size() const {
-        return (v_[X] > 0 ? 1 : 0) +
-                (v_[Y] > 0 ? 1 : 0) +
-                (v_[Z] > 0 ? 1 : 0);
+        return (v_[X] > 1 ? 1 : 0) +
+                (v_[Y] > 1 ? 1 : 0) +
+                (v_[Z] > 1 ? 1 : 0);
     }
 
     inline size_t capacity() const { return v_[X]*v_[Y]*v_[Z]; }

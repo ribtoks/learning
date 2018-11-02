@@ -67,9 +67,9 @@ public:
 public:
     array3d_t<T> slice(index3d_t const &start,
                        index3d_t const &end) const {
-        shape3d_t shape(DIM(end.x(), start.x()),
-                        DIM(end.y(), start.y()),
-                        DIM(end.z(), start.z()));
+        shape3d_t shape(DIM(start.x(), end.x()),
+                        DIM(start.y(), end.y()),
+                        DIM(start.z(), end.z()));
         std::vector<T> v(shape.capacity(), T(0));
         index3d_iterator it(start, end);
         for (size_t i = 0; it.is_valid(); ++it, ++i) {

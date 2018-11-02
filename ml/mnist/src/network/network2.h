@@ -22,7 +22,7 @@ public:
     network2_t(std::initializer_list<layer_type> layers);
 
 public:
-    void train(training_data &data,
+    void train(training_data const &data,
                train_strategy_t<data_type> const &strategy,
                size_t epochs,
                size_t minibatch_size);
@@ -36,13 +36,13 @@ private:
 
     // updates network weights and biases using one
     // iteration of gradient descent using mini_batch of inputs and outputs
-    void update_mini_batch(training_data &data,
+    void update_mini_batch(training_data const &data,
                            std::vector<size_t> const &indices,
                            train_strategy_t<network2_t::data_type> const &strategy);
 
     // runs a loop of propagation of inputs and backpropagation of errors
     // back to the beginning with weights and biases updates as a result
-    void backpropagate(t_d &x, t_d &result);
+    void backpropagate(t_d const &x, t_d const &result);
 
 private:
     //  dimensions of layers

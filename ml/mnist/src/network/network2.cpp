@@ -13,7 +13,7 @@ network2_t::network2_t(std::initializer_list<network2_t::layer_type> layers):
     layers_(layers)
 { }
 
-void network2_t::train(network2_t::training_data &data,
+void network2_t::train(network2_t::training_data const &data,
                        const train_strategy_t<data_type> &strategy,
                        size_t epochs,
                        size_t minibatch_size) {
@@ -49,7 +49,7 @@ network2_t::t_d network2_t::feedforward(network2_t::t_d const &a) {
     return input.data;
 }
 
-size_t network2_t::evaluate(const network2_t::training_data &data, const std::vector<size_t> &indices) {
+size_t network2_t::evaluate(network2_t::training_data const &data, const std::vector<size_t> &indices) {
     size_t count = 0;
     for (auto i: indices) {
         network2_t::t_d result = feedforward(std::get<0>(data[i]));
@@ -59,7 +59,7 @@ size_t network2_t::evaluate(const network2_t::training_data &data, const std::ve
     return count;
 }
 
-void network2_t::update_mini_batch(network2_t::training_data &data,
+void network2_t::update_mini_batch(network2_t::training_data const &data,
                                    const std::vector<size_t> &indices,
                                    const train_strategy_t<data_type> &strategy) {
     for (auto i: indices) {
@@ -74,7 +74,7 @@ void network2_t::update_mini_batch(network2_t::training_data &data,
     }
 }
 
-void network2_t::backpropagate(t_d &x, t_d &result) {
+void network2_t::backpropagate(t_d const &x, t_d const &result) {
     const size_t layers_size = layers_.size();
     layer_input_t<network2_t::data_type> input(x);
 
