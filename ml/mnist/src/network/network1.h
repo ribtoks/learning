@@ -4,16 +4,15 @@
 #include <initializer_list>
 #include <vector>
 #include <tuple>
-#include "common/calculus_types.h"
+#include "common/array3d.h"
 
 class network1_t {
 public:
-    using v_d = vector_t<double>;
-    using m_d = matrix_t<double>;
-    using training_data = std::vector<std::tuple<v_d, v_d>>;
+    using t_d = array3d_t<double>;
+    using training_data = std::vector<std::tuple<t_d, t_d>>;
 
 public:
-    network1_t(std::initializer_list<int> layers);
+    network1_t(std::initializer_list<size_t> layers);
 
 public:
     // train network using stochastic gradient descent
@@ -30,7 +29,7 @@ private:
     size_t evaluate(const training_data &data, const std::vector<size_t> &indices) const;
 
     // feeds input a to the network and returns output
-    v_d feedforward(v_d a) const;
+    t_d feedforward(t_d a) const;
 
     // updates network weights and biases using one
     // iteration of gradient descent using mini_batch of inputs and outputs
@@ -41,22 +40,22 @@ private:
 
     // runs a loop of propagation of inputs and backpropagation of errors
     // back to the beginning with weights and biases updates as a result
-    void backpropagate(const v_d &input,
-                       const v_d &result,
-                       std::vector<v_d> &nabla_b,
-                       std::vector<m_d> &nabla_w);
+    void backpropagate(t_d const &input,
+                       t_d const &result,
+                       std::vector<t_d> &nabla_b,
+                       std::vector<t_d> &nabla_w);
 
-    v_d &activate(v_d &z) const;
-    v_d &activation_derivative(v_d &z) const;
-    v_d cost_derivative(const v_d &actual, const v_d &expected) const;
+    t_d &activate(t_d &z) const;
+    t_d &activation_derivative(t_d &z) const;
+    t_d cost_derivative(const t_d &actual, const t_d &expected) const;
 
 private:
     //  dimensions of layers
-    std::vector<int> layers_;
+    std::vector<size_t> layers_;
     // bias(i) is a vector of biases of neurons in layer (i)
-    std::vector<v_d> biases_;
+    std::vector<t_d> biases_;
     // weight(i) is a matrix of weights between layer (i) and (i + 1)
-    std::vector<m_d> weights_;
+    std::vector<t_d> weights_;
 };
 
 #endif // NETWORK1_H

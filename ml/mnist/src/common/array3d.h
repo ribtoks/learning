@@ -86,16 +86,16 @@ public:
     }
 
 public:
-    shape3d_t const &shape() const { return shape_; }
-    size_t size() const { return v_.size(); }
+    inline shape3d_t const &shape() const { return shape_; }
+    inline size_t size() const { return v_.size(); }
     inline T &at(size_t x, size_t y, size_t z) { return v_.at(shape_.index(x, y, z)); }
-    T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
-    T &operator()(size_t x, size_t y) { return at(x, y, 0); }
-    T &operator()(size_t x) { return at(x, 0, 0); }
+    inline T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
+    inline T &operator()(size_t x, size_t y) { return at(x, y, 0); }
+    inline T &operator()(size_t x) { return at(x, 0, 0); }
     inline T const &at(size_t x, size_t y, size_t z) const { return v_.at(shape_.index(x, y, z)); }
-    T const &operator()(size_t x, size_t y, size_t z) const { return at(x, y, z); }
-    T const &operator()(size_t x, size_t y) const { return at(x, y, 0); }
-    T const &operator()(size_t x) const { return at(x, 0, 0); }
+    inline T const &operator()(size_t x, size_t y, size_t z) const { return at(x, y, z); }
+    inline T const &operator()(size_t x, size_t y) const { return at(x, y, 0); }
+    inline T const &operator()(size_t x) const { return at(x, 0, 0); }
 
 public:
     array3d_t<T> &operator=(array3d_t<T> &&other) {

@@ -11,9 +11,6 @@ set(SOURCES
     parsing/parsed_images.cpp
     parsing/parsed_labels.h
     parsing/parsed_labels.cpp
-#    common/calculus.h
-#    common/calculus.cpp
-#    common/calculus_types.h
     common/cpphelpers.h
     common/cpphelpers.cpp
     common/shape.h

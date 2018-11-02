@@ -2,33 +2,22 @@
 
 #include <numeric>
 
-#include "common/calculus.h"
+#include "common/array3d_math.h"
 #include "common/cpphelpers.h"
 #include "common/log.h"
 
-std::vector<network1_t::v_d> copy_shapes(const std::vector<network1_t::v_d> &from) {
-    std::vector<network1_t::v_d> to;
+std::vector<network1_t::t_d> copy_shapes(const std::vector<network1_t::t_d> &from) {
+    std::vector<network1_t::t_d> to;
     to.reserve(from.size());
 
-    for (auto &v: from) {
-        to.emplace_back(v.size(), 0);
+    for (auto &a: from) {
+        to.emplace_back(a.shape(), 0);
     }
 
     return to;
 }
 
-std::vector<network1_t::m_d> copy_shapes(const std::vector<network1_t::m_d> &from) {
-    std::vector<network1_t::m_d> to;
-    to.reserve(from.size());
-
-    for (auto &m: from) {
-        to.emplace_back(m.height(), m.width(), 0);
-    }
-
-    return to;
-}
-
-network1_t::network1_t(std::initializer_list<int> layers):
+network1_t::network1_t(std::initializer_list<size_t> layers):
     layers_(layers)
 {
     const size_t layers_count = layers_.size();
@@ -37,8 +26,8 @@ network1_t::network1_t(std::initializer_list<int> layers):
     // first layer of neurons is an input
     // and doesn't have any biases and weights
     for (size_t i = 1; i < layers_count; i++) {
-        int dim = layers_[i];
-        biases_.emplace_back(dim, 0.0, 1.0);
+        size_t dim = layers_[i];
+        biases_.emplace_back(shape_row(dim), 0.0, 1.0);
     }
 
     weights_.reserve(layers_count - 1);
@@ -51,7 +40,7 @@ network1_t::network1_t(std::initializer_list<int> layers):
     for (size_t i = 0; i < layers_count - 1; i++) {
         size_t height = layers_[i+1];
         size_t width = layers_[i];
-        weights_.emplace_back(height, width,
+        weights_.emplace_back(shape_matrix(height, width),
                               0.0,  // mean
                               1.0/sqrt((double)width));  // std deviation
     }
@@ -92,20 +81,20 @@ void network1_t::train_sgd(const training_data &data,
 size_t network1_t::evaluate(const training_data &data, const std::vector<size_t> &indices) const {
     size_t count = 0;
     for (auto i: indices) {
-        network1_t::v_d result = feedforward(std::get<0>(data[i]));
+        network1_t::t_d result = feedforward(std::get<0>(data[i]));
         assert(result.size() == std::get<1>(data[i]).size());
-        if (argmax(result) == argmax(std::get<1>(data[i]))) { count++; }
+        if (argmax1d(result) == argmax1d(std::get<1>(data[i]))) { count++; }
     }
     return count;
 }
 
-network1_t::v_d network1_t::feedforward(network1_t::v_d a) const {
+network1_t::t_d network1_t::feedforward(network1_t::t_d a) const {
     assert(weights_.size() == biases_.size());
     assert(a.size() == layers_[0]);
     const size_t size = weights_.size();
     for (size_t i = 0; i < size; i++) {
         // a = sigma(w*a + b)
-        a = activate( dot(weights_[i], a).add(biases_[i]) );
+        a = activate( dot_2d_1d(weights_[i], a).add(biases_[i]) );
     }
     return a;
 }
@@ -153,18 +142,18 @@ void network1_t::update_mini_batch(const network1_t::training_data &data,
     }
 }
 
-void network1_t::backpropagate(const network1_t::v_d &input,
-                              const network1_t::v_d &result,
-                              std::vector<network1_t::v_d> &nabla_b,
-                              std::vector<network1_t::m_d> &nabla_w) {
-    std::vector<network1_t::v_d> zs { };
-    std::vector<network1_t::v_d> activations { input };
+void network1_t::backpropagate(const network1_t::t_d &input,
+                              const network1_t::t_d &result,
+                              std::vector<network1_t::t_d> &nabla_b,
+                              std::vector<network1_t::t_d> &nabla_w) {
+    std::vector<network1_t::t_d> zs { };
+    std::vector<network1_t::t_d> activations { input };
     const size_t size = weights_.size();
     const size_t layers_count = layers_.size();
 
     // forward pass
     for (size_t i = 0; i < size; i++) {
-        auto z = dot(weights_[i], activations.back()).add(biases_[i]);
+        auto z = dot_2d_1d(weights_[i], activations.back()).add(biases_[i]);
         zs.push_back(z);
         activations.push_back(activate(z));
     }
@@ -193,16 +182,16 @@ void network1_t::backpropagate(const network1_t::v_d &input,
     }
 }
 
-network1_t::v_d &network1_t::activate(network1_t::v_d &z) const {
+network1_t::t_d &network1_t::activate(network1_t::t_d &z) const {
     return z.apply(sigmoid);
 }
 
-network1_t::v_d &network1_t::activation_derivative(network1_t::v_d &z) const {
+network1_t::t_d &network1_t::activation_derivative(network1_t::t_d &z) const {
     return z.apply(sigmoid_derivative);
 }
 
-network1_t::v_d network1_t::cost_derivative(const v_d &actual, const v_d &expected) const {
-    network1_t::v_d result(actual);
+network1_t::t_d network1_t::cost_derivative(const t_d &actual, const t_d &expected) const {
+    network1_t::t_d result(actual);
     result.subtract(expected);
     return result;
 }
