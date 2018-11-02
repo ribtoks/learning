@@ -48,7 +48,7 @@ public:
         // dC/dw = a(l-1) * delta(l)
         auto delta_nabla_w = dot_transpose(delta, a_prev_);
         nabla_w_.add(delta_nabla_w);
-        // gradient for the next layer w(l+1) * delta(l+1)
+        // gradient for the next layer w(l) * delta(l)
         delta = transpose_dot(weights_, delta);
         return layer_error_t<T>(delta);
     }

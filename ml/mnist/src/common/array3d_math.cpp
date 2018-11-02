@@ -12,28 +12,21 @@ double sigmoid_derivative(double x) {
 }
 
 array3d_t<double> sigmoid_v(array3d_t<double> const &x) {
-    assert(x.shape().size() == 1);
     array3d_t<double> result(x);
     result.apply(sigmoid);
     return result;
 }
 
 array3d_t<double> sigmoid_derivative_v(array3d_t<double> const &x) {
-    assert(x.shape().size() == 1);
     array3d_t<double> result(x);
     result.apply(sigmoid_derivative);
     return result;
 }
 
 array3d_t<double> stable_softmax_v(const array3d_t<double> &x) {
-    assert(x.shape().size() == 1);
     array3d_t<double> result(x);
     const size_t size = result.size();
-    double x_max = x(0);
-    for (size_t i = 0; i < size; i++) {
-        double xi = x(i);
-        if (xi > x_max) { x_max = xi; }
-    }
+    double x_max = x.max();
 
     double sum = 0.0;
     for (size_t i = 0; i < size; i++) {

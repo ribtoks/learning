@@ -171,7 +171,7 @@ public:
         shape_ = shape;
     }
 
-    T max() {
+    T max() const {
         assert(!v_.empty());
         T vmax = v_[0];
         const size_t size = v_.size();

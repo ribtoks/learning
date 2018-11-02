@@ -23,9 +23,12 @@ public:
                               in_shape.z()),
                     0);
 
-        // pooling layer does max-pooling selecting a maximum activation
-        // within the bounds of it's window
+        // pooling layer does max-pooling, selecting a maximum
+        // activation within the bounds of it's "window"
+
+        // z axis corresponds to each filter from convolution layer
         for (size_t z = 0; z < in_shape.z(); z++) {
+            // 2D loop over convoluted image from each filter
             for (size_t y = 0; y <= in_shape.y() - window_size_; y += stride_length_) {
                 for (size_t x = 0; x < in_shape.x() - window_size_; x += stride_length_) {
                     result(x/stride_length_, y/stride_length_, z) =
