@@ -21,6 +21,7 @@ void network2_t::train(network2_t::training_data const &data,
     // small chunk - for validation after some epochs
     const size_t training_size = 5 * data.size() / 6;
     std::vector<size_t> eval_indices(data.size() - training_size);
+    // generate indices from 1 to the number of inputs
     std::iota(eval_indices.begin(), eval_indices.end(), training_size);
 
     for (size_t j = 0; j < epochs; j++) {
@@ -49,12 +50,15 @@ network2_t::t_d network2_t::feedforward(network2_t::t_d const &a) {
     return input.data;
 }
 
+#define INPUT(i) std::get<0>(data[i])
+#define RESULT(i) std::get<1>(data[i])
+
 size_t network2_t::evaluate(network2_t::training_data const &data, const std::vector<size_t> &indices) {
     size_t count = 0;
     for (auto i: indices) {
-        network2_t::t_d result = feedforward(std::get<0>(data[i]));
-        assert(result.size() == std::get<1>(data[i]).size());
-        if (argmax1d(result) == argmax1d(std::get<1>(data[i]))) { count++; }
+        network2_t::t_d result = feedforward(INPUT(i));
+        assert(result.size() == RESULT(i).size());
+        if (argmax1d(result) == argmax1d(RESULT(i))) { count++; }
     }
     return count;
 }
@@ -63,10 +67,7 @@ void network2_t::update_mini_batch(network2_t::training_data const &data,
                                    const std::vector<size_t> &indices,
                                    const train_strategy_t<data_type> &strategy) {
     for (auto i: indices) {
-        auto &input = std::get<0>(data[i]);
-        auto &result = std::get<1>(data[i]);
-
-        backpropagate(input, result);
+        backpropagate(INPUT(i), RESULT(i));
     }
 
     for (auto &layer: layers_) {

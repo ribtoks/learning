@@ -78,11 +78,17 @@ public:
         return array3d_t<T>(shape, v);
     }
 
-    array3d_t slice(index3d_t::dim d, size_t start, size_t end) const {
+    array3d_t<T> slice(index3d_t::dim d, size_t start, size_t end) const {
         index3d_t istart(0, 0, 0);
         index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
         return slice(istart.inc(d, start),
                      iend.set(d, end));
+    }
+
+    array3d_t<T> flatten() {
+        array3d_t<T> copy(*this);
+        copy.reshape(shape3d_t(shape_row(v_.size())));
+        return copy;
     }
 
 public:
@@ -158,6 +164,21 @@ public:
 
     void reset(const T &a) {
         std::fill(v_.begin(), v_.end(), a);
+    }
+
+    void reshape(shape3d_t const &shape) {
+        assert(shape_.capacity() == shape.capacity());
+        shape_ = shape;
+    }
+
+    T max() {
+        assert(!v_.empty());
+        T vmax = v_[0];
+        const size_t size = v_.size();
+        for (size_t i = 1; i < size; i++) {
+            if (v_[i] > vmax) { vmax = v_[i]; }
+        }
+        return vmax;
     }
 
 private:

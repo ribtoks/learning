@@ -8,6 +8,7 @@ struct layer_input_t {
     layer_input_t(array3d_t<T> &a):
         data(std::move(a))
     {}
+
     layer_input_t(array3d_t<T> const &a):
         data(a)
     {}

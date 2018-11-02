@@ -26,6 +26,7 @@ set(SOURCES
 #    network/network1.h
 #    network/network1.cpp
     layers/fullyconnectedlayer.h
+    layers/poolinglayer.h
     layers/crossentropyoutputlayer.h
     layers/convolutionlayer.h
     layers/layer_base.h
