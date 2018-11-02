@@ -26,9 +26,9 @@ public:
         // pooling layer does max-pooling selecting a maximum activation
         // within the bounds of it's window
         for (size_t z = 0; z < in_shape.z(); z++) {
-            for (size_t y = 0; y <= in_shape.y() - window_size_; y += window_size_) {
-                for (size_t x = 0; x < in_shape.x() - window_size_; x += window_size_) {
-                    result(x/window_size_, y/window_size_, z) =
+            for (size_t y = 0; y <= in_shape.y() - window_size_; y += stride_length_) {
+                for (size_t x = 0; x < in_shape.x() - window_size_; x += stride_length_) {
+                    result(x/stride_length_, y/stride_length_, z) =
                             input.data.slice(
                                 index3d_t(x, y, z),
                                 index3d_t(x + window_size_ - 1,
