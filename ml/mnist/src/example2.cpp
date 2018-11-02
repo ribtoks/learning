@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     // derivative returns 1 because it is cancelled out when using cross-entropy
     activator_t<double> softmax_activator(stable_softmax_v,
                                           [](array3d_t<double> const &x){
-        return array3d_t<double>(shape3d_t(x.size(), 1, 1), 1.0);});
+        return array3d_t<double>(shape_row(x.size()), 1.0);});
     sdg_strategy_t<double> sdg_strategy(mini_batch_size,
                                         training_data.size(),
                                         decay_rate,

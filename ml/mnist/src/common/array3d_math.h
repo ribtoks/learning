@@ -14,6 +14,7 @@ template<typename T>
 size_t argmax1d(array3d_t<T> const &v) {
     assert(v.size() > 0);
     assert(v.shape().size() == 1);
+
     const size_t size = v.size();
     T max_v = v(0);
     size_t max_i = 0;
@@ -32,6 +33,7 @@ T dot_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
     assert(a.shape().size() == b.shape().size());
     assert(a.shape().size() == 1);
     assert(a.size() == b.size());
+
     T sum = 0;
     const size_t size = b.size();
     for (size_t i = 0; i < size; i++) {
@@ -45,11 +47,16 @@ array3d_t<T> dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(m.shape().size() == 2);
     assert(v.shape().size() == 1);
     assert(m.shape().x() == v.shape().x());
+
     const size_t height = m.shape().y();
-    array3d_t<T> result(shape3d_t(height, 1, 1), 0);
+    const size_t width = m.shape().x();
+    array3d_t<T> result(shape_row(height), 0);
     for (size_t i = 0; i < height; i++) {
-        auto row = m.slice(index3d_t::Y, i, i);
-        result(i) = dot_1d(row, v);
+        T sum = 0;
+        for (size_t j = 0; j < width; j++) {
+            sum += v(j) * m(j, i);
+        }
+        result(i) = sum;
     }
     return result;
 }
@@ -62,7 +69,7 @@ array3d_t<T> dot_transpose_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
     const size_t height = a.shape().x();
     const size_t width = b.shape().x();
 
-    array3d_t<T> c(shape3d_t(width, height, 1), 0);
+    array3d_t<T> c(shape_matrix(height, width), 0);
 
     for (size_t i = 0; i < height; i++) {
         for (size_t j = 0; j < width; j++) {
@@ -81,7 +88,7 @@ array3d_t<T> transpose_dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
 
     const size_t width = m.shape().x();
     const size_t height = m.shape().y();
-    array3d_t<T> output(shape3d_t(width, 1, 1), 0);
+    array3d_t<T> output(shape_row(width), 0);
 
     for (size_t i = 0; i < width; i++) {
         T sum = 0;

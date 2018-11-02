@@ -35,7 +35,6 @@ public:
     size_t const &y() const { return v_[Y]; }
     size_t const &z() const { return v_[Z]; }
     std::array<size_t, 3> &data() { return v_; }
-    size_t v(dim d) { return v_[(int)d]; }
 
 public:
     inline index3d_t inc(dim d, size_t a) {
@@ -52,14 +51,9 @@ public:
 
 public:
     inline bool operator==(const index3d_t &other) const {
-        bool any_failure = false;
-        for (size_t i = 0; i < 3; i++) {
-            if (v_[i] != other.v_[i]) {
-                any_failure = true;
-                break;
-            }
-        }
-        return !any_failure;
+        return (v_[X] == other.v_[X]) &&
+                (v_[Y] == other.v_[Y]) &&
+                (v_[Z] == other.v_[Z]);
     }
 
     inline bool operator!=(const index3d_t &other) const {
@@ -97,6 +91,9 @@ public:
         return index(i.x(), i.y(), i.z());
     }
 };
+
+static inline shape3d_t shape_row(size_t size) { return shape3d_t(size, 1, 1); }
+static inline shape3d_t shape_matrix(size_t height, size_t width) { return shape3d_t(width, height, 1); }
 
 class index3d_iterator {
 public:

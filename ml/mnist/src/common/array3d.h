@@ -82,7 +82,7 @@ public:
         index3d_t istart(0, 0, 0);
         index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
         return slice(istart.inc(d, start),
-                     iend.set(d, istart.v(d) + end));
+                     iend.set(d, end));
     }
 
 public:
