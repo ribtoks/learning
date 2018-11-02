@@ -1,7 +1,6 @@
 #ifndef CROSSENTROPYOUPTUTLAYER_H
 #define CROSSENTROPYOUPTUTLAYER_H
 
-#include "common/calculus_types.h"
 #include "network/activator.h"
 #include "layers/layer_base.h"
 #include "strategy/train_strategy.h"
