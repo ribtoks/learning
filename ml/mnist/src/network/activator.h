@@ -9,9 +9,9 @@ class activator_t {
     using activator_func_t = std::function<array3d_t<T>(const array3d_t<T>&)>;
 public:
     activator_t(activator_func_t const &activation_func,
-                activator_func_t const &activation_derivative):
+                activator_func_t const &derivative):
         activation_func_(activation_func),
-        derivative_(activation_derivative)
+        derivative_(derivative)
     { }
 
     activator_t(activator_t const &other):
@@ -21,7 +21,7 @@ public:
 
 public:
     array3d_t<T> activate(array3d_t<T> const &v) const { return activation_func_(v); }
-    array3d_t<T> activation_derivative(array3d_t<T> const &v) const { return derivative_(v); }
+    array3d_t<T> derivative(array3d_t<T> const &v) const { return derivative_(v); }
 
 private:
     activator_func_t activation_func_;

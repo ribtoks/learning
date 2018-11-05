@@ -75,7 +75,7 @@ public:
     { }
 
 public:
-    inline size_t size() const {
+    inline size_t dim() const {
         return (v_[X] > 1 ? 1 : 0) +
                 (v_[Y] > 1 ? 1 : 0) +
                 (v_[Z] > 1 ? 1 : 0);

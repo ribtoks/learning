@@ -46,7 +46,7 @@ private:
                        std::vector<t_d> &nabla_w);
 
     t_d &activate(t_d &z) const;
-    t_d &activation_derivative(t_d &z) const;
+    t_d &derivative(t_d &z) const;
     t_d cost_derivative(const t_d &actual, const t_d &expected) const;
 
 private:

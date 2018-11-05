@@ -31,26 +31,24 @@ public:
     { }
 
 public:
-    virtual layer_input_t<T> feedforward(layer_input_t<T> const &input) override {
-        a_prev_ = input.data;
+    virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
+        a_prev_ = input.clone();
         // z = w*a + b
-        z_ = dot_2d_1d(weights_, a_prev_).add(bias_);
-        auto a = activator_.activate(z_);
-        return layer_input_t<T>(a);
+        z_ = std::move(dot21(weights_, a_prev_)); z_.add(bias_);
+        return activator_.activate(z_);
     }
 
-    virtual layer_error_t<T> backpropagate(layer_error_t<T> const &error) override {
-        // delta(l) = (w(l+1) * delta(l+1)) [X] activation_derivative(z(l))
+    virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
+        // delta(l) = (w(l+1) * delta(l+1)) [X] derivative(z(l))
         // (w(l+1) * delta(l+1)) comes as the gradient (error) from the "previous" layer
-        array3d_t<T> delta = activator_.activation_derivative(z_).element_mul(error.data);
+        array3d_t<T> delta = std::move(activator_.derivative(z_).element_mul(error));
         // dC/db = delta(l)
         nabla_b_.add(delta);
         // dC/dw = a(l-1) * delta(l)
-        auto delta_nabla_w = dot_transpose(delta, a_prev_);
+        array3d_t<T> delta_nabla_w = std::move(outer_product(delta, a_prev_));
         nabla_w_.add(delta_nabla_w);
         // gradient for the next layer w(l) * delta(l)
-        delta = transpose_dot(weights_, delta);
-        return layer_error_t<T>(delta);
+        return transpose_dot21(weights_, delta);
     }
 
     virtual void update_weights(train_strategy_t<T> const &strategy) override {

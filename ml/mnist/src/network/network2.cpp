@@ -6,8 +6,6 @@
 #include "common/array3d_math.h"
 #include "common/cpphelpers.h"
 #include "common/log.h"
-#include "layers/input.h"
-#include "layers/error.h"
 
 network2_t::network2_t(std::initializer_list<network2_t::layer_type> layers):
     layers_(layers)
@@ -43,11 +41,11 @@ void network2_t::train(network2_t::training_data const &data,
 }
 
 network2_t::t_d network2_t::feedforward(network2_t::t_d const &a) {
-    layer_input_t<network2_t::data_type> input(a);
+    array3d_t<network2_t::data_type> input(a);
     for (auto &layer: layers_) {
         input = layer->feedforward(input);
     }
-    return input.data;
+    return input;
 }
 
 #define INPUT(i) std::get<0>(data[i])
@@ -77,7 +75,7 @@ void network2_t::update_mini_batch(network2_t::training_data const &data,
 
 void network2_t::backpropagate(t_d const &x, t_d const &result) {
     const size_t layers_size = layers_.size();
-    layer_input_t<network2_t::data_type> input(x);
+    array3d_t<network2_t::data_type> input(x);
 
     // feedforward input
     for (size_t i = 0; i < layers_size; i++) {
@@ -85,7 +83,7 @@ void network2_t::backpropagate(t_d const &x, t_d const &result) {
     }
 
     // backpropagate error
-    layer_error_t<network2_t::data_type> error(result);
+    array3d_t<network2_t::data_type> error(result);
     for (size_t i = layers_size; i-- > 0;) {
         error = layers_[i]->backpropagate(error);
     }

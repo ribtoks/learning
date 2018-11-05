@@ -12,16 +12,16 @@ public:
     { }
 
 public:
-    virtual layer_input_t<T> feedforward(layer_input_t<T> const &input) override {
-        last_activation_ = input.data;
+    virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
+        last_activation_ = input.clone();
         return input;
     }
 
-    virtual layer_error_t<T> backpropagate(layer_error_t<T> const &result) override {
+    virtual array3d_t<T> backpropagate(array3d_t<T> const &result) override {
         // delta(L) = cost_deriv [X] activation_deriv(z(L))
         // cross-entropy derivative is [a(x) - y]
-        last_activation_.subtract(result.data);
-        return layer_error_t<T>(last_activation_);
+        last_activation_.subtract(result);
+        return last_activation_;
     }
 
     virtual void update_weights(train_strategy_t<T> const &) override {}

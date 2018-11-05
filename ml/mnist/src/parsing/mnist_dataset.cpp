@@ -30,7 +30,7 @@ std::vector<std::tuple<array3d_t<double>, array3d_t<double>>> mnist_dataset_t::t
         array3d_t<double> input(*itImg); input.mul(1.0 / 255.0);
         array3d_t<double> result(shape_row(10), 0.0); result(*itLbl) = 1.0;
 
-        data.emplace_back(input, result);
+        data.emplace_back(std::make_tuple(std::move(input), std::move(result)));
 
         if (data.size() >= count_limit) { break; }
     }

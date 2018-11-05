@@ -52,10 +52,10 @@ public:
     }
 
 public:
-    virtual layer_input_t<T> feedforward(layer_input_t<T> const &input) override {
+    virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
         assert(input.data.shape() == input_shape_);
 
-        a_prev_ = input.data;
+        a_prev_ = input.clone();
         shape3d_t const &output_shape = (padding_ == padding_type::valid ? conv_shape_ : input_shape_);
         array3d_t<T> result(output_shape, 0);
 
@@ -65,7 +65,6 @@ public:
         const size_t fsize = filter_weights_.size();
         // perform convolution for each filter
         for (size_t i = 0; i < fsize; i++) {
-            auto flat_filter = filter_weights_[i].flatten();
             // 2D loop over the input and calculation convolution of input and current filter
             // convolution is S(i, j) = (I ∗ K)(i, j) = Sum[ I(m, n)K(i − m, j − n) ]
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
@@ -78,29 +77,29 @@ public:
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     result(x, y, i) =
                             filter_biases_(i) +
-                            dot_1d(
+                            dot(
                                 input.data.slice(
                                     index3d_t(xi, yi, 0),
                                     index3d_t(xi + filter_shape_.x() - 1,
                                               yi + filter_shape_.y() - 1,
-                                              input_shape_.z() - 1)).flatten(),
-                                flat_filter);
+                                              input_shape_.z() - 1)),
+                                filter_weights_[i]);
                 }
             }
         }
 
         z_ = std::move(result);
         array3d_t<T> a = activator_.activate(z_);
-        return layer_input_t<T>(a);
+        return array3d_t<T>(a);
     }
 
-    virtual layer_error_t<T> backpropagate(layer_error_t<T> const &error) override {
+    virtual array3d_t<T> backpropagate(layer_error_t<T> const &error) override {
         assert(error.data.shape() == conv_shape_);
         // TODO: fix this code
 
 
         // previous layer should have been max-pooling so data's shape should be same
-        array3d_t<T> delta = activator_.activation_derivative(z_).element_mul(error.data);
+        array3d_t<T> delta = activator_.derivative(z_).element_mul(error.data);
 
         const size_t fsize = filter_weights_.size();
         auto &err_shape = error.data.shape();
@@ -116,7 +115,7 @@ public:
             for (size_t y = 0; y < conv_shape_.y(); y += stride_length_) {
                 for (size_t x = 0; x < conv_shape_.x(); x += stride_length_) {
                     nabla_w(x/stride_length_, y/stride_length_, i) +=
-                            dot_1d(
+                            dot(
                                 a_prev_.data.slice(
                                     index3d_t(x, y, 0),
                                     index3d_t(x + conv_shape_.x() - 1,

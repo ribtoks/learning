@@ -30,8 +30,6 @@ set(SOURCES
     layers/crossentropyoutputlayer.h
     layers/convolutionlayer.h
     layers/layer_base.h
-    layers/input.h
-    layers/error.h
     network/activator.h
     parsing/mnist_dataset.h
     parsing/mnist_dataset.cpp)

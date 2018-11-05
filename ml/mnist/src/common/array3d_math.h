@@ -13,7 +13,7 @@ array3d_t<double> stable_softmax_v(array3d_t<double> const &x);
 template<typename T>
 size_t argmax1d(array3d_t<T> const &v) {
     assert(v.size() > 0);
-    assert(v.shape().size() == 1);
+    assert(v.shape().dim() == 1);
 
     const size_t size = v.size();
     T max_v = v(0);
@@ -29,23 +29,25 @@ size_t argmax1d(array3d_t<T> const &v) {
 }
 
 template<typename T>
-T dot_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
-    assert(a.shape().size() == b.shape().size());
-    assert(a.shape().size() == 1);
+T inner_product(array3d_t<T> const &a, array3d_t<T> const &b) {
+    assert(a.shape().dim() == b.shape().dim());
     assert(a.size() == b.size());
 
     T sum = 0;
-    const size_t size = b.size();
+    auto &a_raw = a.data();
+    auto &b_raw = b.data();
+    const size_t size = a_raw.size();
     for (size_t i = 0; i < size; i++) {
-        sum += a(i) * b(i);
+        sum += a_raw[i] * b_raw[i];
     }
+
     return sum;
 }
 
 template<typename T>
-array3d_t<T> dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
-    assert(m.shape().size() == 2);
-    assert(v.shape().size() == 1);
+array3d_t<T> dot21(array3d_t<T> const &m, array3d_t<T> const &v) {
+    assert(m.shape().dim() == 2);
+    assert(v.shape().dim() == 1);
     assert(m.shape().x() == v.shape().x());
 
     const size_t height = m.shape().y();
@@ -62,9 +64,9 @@ array3d_t<T> dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
 }
 
 template<typename T>
-array3d_t<T> dot_transpose_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
-    assert(a.shape().size() == b.shape().size());
-    assert(a.shape().size() == 1);
+array3d_t<T> outer_product(array3d_t<T> const &a, array3d_t<T> const &b) {
+    assert(a.shape().dim() == b.shape().dim());
+    assert(a.shape().dim() == 1);
 
     const size_t height = a.shape().x();
     const size_t width = b.shape().x();
@@ -81,7 +83,7 @@ array3d_t<T> dot_transpose_1d(array3d_t<T> const &a, array3d_t<T> const &b) {
 }
 
 template<typename T>
-array3d_t<T> transpose_dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
+array3d_t<T> transpose_dot21(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(m.shape().size() == 2);
     assert(v.shape().size() == 1);
     assert(m.shape().y() == v.shape().x());
@@ -99,28 +101,6 @@ array3d_t<T> transpose_dot_2d_1d(array3d_t<T> const &m, array3d_t<T> const &v) {
     }
 
     return output;
-}
-
-template<typename T>
-array3d_t<T> dot_transpose(array3d_t<T> const &a, array3d_t<T> const &b) {
-    auto &sa = a.shape();
-    auto &sb = b.shape();
-    if (sa.size() == 1 && sb.size() == 1) {
-        return dot_transpose_1d(a, b);
-    } else {
-        throw std::runtime_error("dot product not supported for such dimensions");
-    }
-}
-
-template<typename T>
-array3d_t<T> transpose_dot(array3d_t<T> const &m, array3d_t<T> const &v) {
-    auto &sa = m.shape();
-    auto &sb = v.shape();
-    if (sa.size() == 2 && sb.size() == 1) {
-        return transpose_dot_2d_1d(m, v);
-    } else {
-        throw std::runtime_error("dot product not supported for such dimensions");
-    }
 }
 
 #endif // ARRAY3D_MATH_H
