@@ -73,7 +73,9 @@ public:
         std::vector<T> v(shape.capacity(), T(0));
         index3d_iterator it(start, end);
         for (size_t i = 0; it.is_valid(); ++it, ++i) {
-            v[i] = v_[shape_.index(*it)];
+            if (in_bounds(*it)) {
+                v[i] = v_[shape_.index(*it)];
+            }
         }
         return array3d_t<T>(shape, v);
     }
@@ -89,6 +91,33 @@ public:
         array3d_t<T> copy(*this);
         copy.reshape(shape3d_t(shape_row(v_.size())));
         return copy;
+    }
+
+    array3d_t<T> rot180() {
+        array3d_t<T> copy(*this);
+
+        const size_t x_size = shape_.x();
+        const size_t y_size = shape_.y();
+        const size_t z_size = shape_.z();
+
+        for (size_t z = 0; z < z_size; z++) {
+            for (size_t y = 0; y < y_size; y++) {
+                for (size_t x = 0; x < x_size; x++) {
+                    copy.at(x, y, z) = this->at(x_size - 1 - x,
+                                                y_size - 1 - y,
+                                                z_size - 1 - z);
+                }
+            }
+        }
+
+        return copy;
+    }
+
+private:
+    inline bool in_bounds(index3d_t const &i) {
+        return ((0 <= i.x()) && (i.x() < shape_.x())) &&
+                ((0 <= i.y()) && (i.y() < shape_.y())) &&
+                ((0 <= i.z()) && (i.z() < shape_.z()));
     }
 
 public:
