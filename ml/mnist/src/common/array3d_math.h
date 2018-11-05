@@ -84,8 +84,8 @@ array3d_t<T> outer_product(array3d_t<T> const &a, array3d_t<T> const &b) {
 
 template<typename T>
 array3d_t<T> transpose_dot21(array3d_t<T> const &m, array3d_t<T> const &v) {
-    assert(m.shape().size() == 2);
-    assert(v.shape().size() == 1);
+    assert(m.shape().dim() == 2);
+    assert(v.shape().dim() == 1);
     assert(m.shape().y() == v.shape().x());
 
     const size_t width = m.shape().x();

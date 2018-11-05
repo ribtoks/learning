@@ -89,20 +89,19 @@ public:
         }
 
         z_ = std::move(result);
-        array3d_t<T> a = activator_.activate(z_);
-        return array3d_t<T>(a);
+        return activator_.activate(z_);
     }
 
-    virtual array3d_t<T> backpropagate(layer_error_t<T> const &error) override {
+    virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
         assert(error.data.shape() == conv_shape_);
         // TODO: fix this code
 
 
         // previous layer should have been max-pooling so data's shape should be same
-        array3d_t<T> delta = activator_.derivative(z_).element_mul(error.data);
+        array3d_t<T> delta = activator_.derivative(z_).element_mul(error);
 
         const size_t fsize = filter_weights_.size();
-        auto &err_shape = error.data.shape();
+        auto &err_shape = error.shape();
         auto flat_errors = delta.flatten();
         // calculate nabla_w for each filter
         for (size_t i = 0; i < fsize; i++) {
@@ -139,10 +138,12 @@ public:
 
 private:
     size_t get_vertical_padding() const {
+        shape3d_t const &output_shape = (padding_ == padding_type::valid ? conv_shape_ : input_shape_);
         return (output_shape.y() - conv_shape_.y()) / 2;
     }
 
     size_t get_horizontal_padding() const {
+        shape3d_t const &output_shape = (padding_ == padding_type::valid ? conv_shape_ : input_shape_);
         return (output_shape.x() - conv_shape_.x()) / 2;
     }
 

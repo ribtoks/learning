@@ -88,27 +88,6 @@ public:
                      iend.set(d, end));
     }
 
-    // alternative name: rot180() used for convolution layer
-    array3d_t<T> transpose() {
-        assert(shape_.dim() == 2);
-
-        const size_t x_size = shape_.x();
-        const size_t y_size = shape_.y();
-        const size_t z_size = shape_.z();
-
-        array3d_t<T> copy(shape3d_t(y_size, x_size, z_size), T(0));
-
-        for (size_t z = 0; z < z_size; z++) {
-            for (size_t y = 0; y < y_size; y++) {
-                for (size_t x = 0; x < x_size; x++) {
-                    copy.at(y, x, z) = this->at(x, y, z);
-                }
-            }
-        }
-
-        return copy;
-    }
-
     array3d_t<T> clone() const {
         return array3d_t(*this);
     }
@@ -141,11 +120,6 @@ public:
     }
 
     array3d_t<T> &operator=(array3d_t<T> const &other) = delete;
-    /*array3d_t<T> &operator=(array3d_t<T> const &other) {
-        shape_ = other.shape_;
-        v_ = other.v_;
-        return *this;
-    }*/
 
     array3d_t<T> &mul(const T &a) {
         for (auto &v: v_) { v *= a; }
