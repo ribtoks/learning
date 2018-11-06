@@ -40,7 +40,7 @@ public:
         activator_(activator)
     {
         filter_weights_.reserve(filters_number);
-        filter_biases_.reserve(filters_number)
+        filter_biases_.reserve(filters_number);
         nabla_weights_.reserve(filters_number);
         nabla_biases_.reserve(filters_number);
         // all neurons in each filter share same weights and bias
