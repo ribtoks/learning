@@ -45,6 +45,9 @@ T inner_product(array3d_t<T> const &a, array3d_t<T> const &b) {
 }
 
 template<typename T>
+T dot(array3d_t<T> const &a, array3d_t<T> const &b) { return inner_product(a, b); }
+
+template<typename T>
 array3d_t<T> dot21(array3d_t<T> const &m, array3d_t<T> const &v) {
     assert(m.shape().dim() == 2);
     assert(v.shape().dim() == 1);

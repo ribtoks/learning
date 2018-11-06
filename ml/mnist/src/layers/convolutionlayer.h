@@ -36,7 +36,7 @@ public:
         conv_shape_(FILTER_DIM(input_shape.x(), filter_shape.x(), stride_length),
                     FILTER_DIM(input_shape.y(), filter_shape.y(), stride_length),
                     filters_number),
-        stride_length_(stride_length),
+        stride_(stride_length, stride_length, 0),
         padding_(padding),
         activator_(activator)
     {
@@ -52,7 +52,7 @@ public:
                         T(0), T(1)/sqrt((T)filter_shape.capacity()));
             filter_biases_.emplace_back(shape_row(1), 0);
             nabla_weights_.emplace_back(filter_shape, 0);
-            nabla_biases_.emplace_back(conv_shape_, 0);
+            nabla_biases_.emplace_back(shape_row(1), 0);
         }
     }
 
@@ -96,10 +96,10 @@ private:
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
             // where I is input and K is kernel (filter weights)
             for (size_t y = 0; y < output_shape.y(); y++) {
-                int yi = y * stride_length_ - pad_y;
+                int yi = y * stride_.y() - pad_y;
 
                 for (size_t x = 0; x < output_shape.x(); x++) {
-                    int xi = x * stride_length_ - pad_x;
+                    int xi = x * stride_.x() - pad_x;
                     // in this case cross-correlation (I(m, n)K(i + m, j + n)) is used
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     // previous formula (w*x + b) is used with convolution instead of product
@@ -123,18 +123,22 @@ private:
     array3d_t<T> backpropagate_loop(array3d_t<T> const &error) override {
         // error shape was already transformed in the prev layer as delta(l+1)(*)rot180(w(l+1))
         assert(error.shape() == output_.shape());
+        auto &error_shape = error.shape();
         array3d_t<T> delta;
         delta = activator_.derivative(output_); delta.element_mul(error);
 
         const int pad_x = get_left_padding();
         const int pad_y = get_top_padding();
+        const int weight_pad_x = utils::get_left_padding(error_shape, filter_shape_, stride_.x());
+        const int weight_pad_y = utils::get_top_padding(error_shape, filter_shape_, stride_.y());
 
         const size_t fsize = filter_weights_.size();
-        auto &error_shape = error.shape();
         // calculate nabla_w for each filter
         for (size_t i = 0; i < fsize; i++) {
             auto &nabla_w = nabla_weights_[i];
             auto &nabla_b = nabla_biases_[i];
+            auto &weights = filter_weights_[i];
+
             for (int y = 0; y < filter_shape_.y(); y++) {
                 int yi = y - pad_y;
 
@@ -158,14 +162,11 @@ private:
             }
         }
 
-        const int weight_pad_x = utils::get_left_padding(error_shape, filter_shape_, stride_length_);
-        const int weight_pad_y = utils::get_top_padding(error_shape, filter_shape_, stride_length_);
         // gradient for the next layer = delta(l) (*) rot180(w(l)
         // with 'full' convolution (http://www.johnloomis.org/ece563/notes/filter/conv/convolution.html)
         array3d_t<T> delta_next(input_shape_, T(0));
         // for each filter
         for (size_t i = 0; i < fsize; i++) {
-            auto &weights = filter_weights_[i];
 
             for (int z = 0; z < input_shape_.z(); z++) {
                 for (int y = 0; y < input_shape_.y(); y++) {
@@ -193,21 +194,21 @@ private:
     shape3d_t get_output_shape() const {
         if (padding_ == padding_type::valid) { return conv_shape_; }
 
-        double width = ceil(double(input_shape_.x()) / double(stride_length_));
-        double height = ceil(double(input_shape_.y()) / double(stride_length_));
+        double width = ceil(double(input_shape_.x()) / double(stride_.x()));
+        double height = ceil(double(input_shape_.y()) / double(stride_.y()));
         return shape3d_t((size_t)width, (size_t)height, filter_weights_.size());
     }
 
     int get_top_padding() const {
         if (padding_ == padding_type::valid) { return 0; }
 
-        return utils::get_top_padding(input_shape_, filter_shape_, stride_length_);
+        return utils::get_top_padding(input_shape_, filter_shape_, stride_.y());
     }
 
     int get_left_padding() const {
         if (padding_ == padding_type::valid) { return 0; }
 
-        return utils::get_left_padding(input_shape_, filter_shape_, stride_length_);
+        return utils::get_left_padding(input_shape_, filter_shape_, stride_.x());
     }
 
 private:
@@ -215,7 +216,7 @@ private:
     shape3d_t filter_shape_;
     // shape which is the result of the convolution of image and filter
     shape3d_t conv_shape_;
-    size_t stride_length_;
+    point3d_t<int> stride_;
     const padding_type padding_;
     activator_t<T> const &activator_;
     std::vector<array3d_t<T>> filter_weights_;

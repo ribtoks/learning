@@ -37,6 +37,8 @@ public:
     std::array<T, 3> &data() { return v_; }
 
 public:
+    inline T v(dim_type d) const { return v_[(size_t)d]; }
+
     inline point3d_t<T> inc(dim_type d, T a) {
         std::array<size_t, 3> v(v_);
         v[(size_t)d] += a;

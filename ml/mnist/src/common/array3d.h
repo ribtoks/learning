@@ -15,6 +15,56 @@
 template<typename T>
 class array3d_t {
 public:
+    class slice3d {
+    public:
+        slice3d(array3d_t<T> &array,
+                index3d_t const &start,
+                index3d_t const &end):
+            array_(array),
+            shape_(DIM(end.x(), start.x(), 1),
+                   DIM(end.y(), start.y(), 1),
+                   DIM(end.z(), start.z(), 1)),
+            start_(start),
+            end_(end)
+        { }
+
+    public:
+        T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
+        T &operator()(size_t x, size_t y) { return at(x, y, 0); }
+        T &operator()(size_t x) { return at(x, 0, 0); }
+        size_t size() const {
+            return DIM(start_.x(), end_.x(), 1) *
+                    DIM(start_.y(), end_.y(), 1) *
+                    DIM(start_.z(), end_.z(), 1);
+        }
+
+        array3d_t<T> to_array() const {
+            std::vector<T> v(this->size(), T(0));
+            index3d_iterator it(start_, end_);
+            for (size_t i = 0; it.is_valid(); ++it, ++i) {
+                if (array_in_bounds(*it)) {
+                    v[i] = array_.v_[shape_.index(*it)];
+                }
+            }
+            return array3d_t<T>(shape_, v);
+        }
+
+    private:
+        inline size_t array_index(size_t x, size_t y, size_t z) {
+            return array_.shape_.index(start_) + shape_.index(x, y, z);
+        }
+
+        inline T &at(size_t x, size_t y, size_t z) { return array_.v_.at(array_index(x, y, z)); }
+        inline T &at(index3d_t const &i) { return array_.v_.at(array_.shape_.index(i)); }
+
+    private:
+        array3d_t<T> &array_;
+        shape3d_t shape_;
+        index3d_t start_;
+        index3d_t end_;
+    };
+
+public:
     array3d_t():
         shape_(0, 0, 0)
     {}
@@ -67,27 +117,14 @@ public:
 
 public:
     // slicing supports cases of negative indices
-    array3d_t<T> slice(index3d_t const &start,
-                       index3d_t const &end,
-                       index3d_t const &step=index3d_t(1, 1, 1)) const {
-        shape3d_t shape(DIM(start.x(), end.x(), step.x()),
-                        DIM(start.y(), end.y(), step.y()),
-                        DIM(start.z(), end.z(), step.z()));
-        std::vector<T> v(shape.capacity(), T(0));
-        index3d_iterator it(start, end, step);
-        for (size_t i = 0; it.is_valid(); ++it, ++i) {
-            if (in_bounds(*it)) {
-                v[i] = v_[shape_.index(*it)];
-            }
-        }
-        return array3d_t<T>(shape, v);
+    slice3d slice(index3d_t const &start,
+                  index3d_t const &end) const {
+        return slice3d(*this, start, end);
     }
 
-    array3d_t<T> slice(dim_type d, size_t start, size_t end) const {
-        index3d_t istart(0, 0, 0);
-        index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
-        return slice(istart.inc(d, start),
-                     iend.set(d, end));
+    slice3d slice() const {
+        return slice(index3d_t(0, 0, 0),
+                     index3d_t(shape_.x(), shape_.y(), shape_.z()));
     }
 
     array3d_t<T> clone() const {
