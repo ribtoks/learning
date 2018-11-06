@@ -19,6 +19,8 @@ set(SOURCES
     common/array3d_math.cpp
     common/log.h
     common/log.cpp
+    common/utils.h
+    common/utils.cpp
     strategy/sdg_strategy.h
     strategy/train_strategy.h
     network/network2.h

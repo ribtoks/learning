@@ -94,6 +94,10 @@ public:
         return array3d_t(*this);
     }
 
+    array3d_t<T> flatten() const {
+        return array3d_t(shape_row(size()), v_);
+    }
+
 private:
     inline bool in_bounds(index3d_t const &i) {
         return ((0 <= i.x()) && (i.x() < shape_.x())) &&
@@ -173,9 +177,10 @@ public:
         std::fill(v_.begin(), v_.end(), a);
     }
 
-    void reshape(shape3d_t const &shape) {
+    array3d_t<T> &reshape(shape3d_t const &shape) {
         assert(shape_.capacity() == shape.capacity());
         shape_ = shape;
+        return *this;
     }
 
     T max() const {

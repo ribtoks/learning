@@ -7,6 +7,7 @@
 #include "common/array3d.h"
 #include "common/array3d_math.h"
 #include "common/log.h"
+#include "common/shape.h"
 #include "network/activator.h"
 #include "layers/layer_base.h"
 
@@ -23,33 +24,36 @@ public:
         bias_(
             shape_row(layer_out),
             T(0), T(1)),
-        z_(shape_row(layer_out), 0),
-        a_prev_(shape_row(layer_in), 0),
+        output_(shape_row(layer_out), 0),
         nabla_w_(shape_matrix(layer_out, layer_in), 0),
         nabla_b_(shape_row(layer_out), 0),
-        activator_(activator)
+        activator_(activator),
+        input_shape_(layer_out, layer_in, 1)
     { }
 
 public:
     virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
-        a_prev_ = input.clone();
+        input_shape_ = input.shape();
+        input_ = input.flatten();
         // z = w*a + b
-        z_ = dot21(weights_, a_prev_); z_.add(bias_);
-        return activator_.activate(z_);
+        output_ = dot21(weights_, input_); output_.add(bias_);
+        return activator_.activate(output_);
     }
 
     virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
-        array3d_t<T> delta, delta_nabla_w;
+        array3d_t<T> delta, delta_next, delta_nabla_w;
         // delta(l) = (w(l+1) * delta(l+1)) [X] derivative(z(l))
         // (w(l+1) * delta(l+1)) comes as the gradient (error) from the "previous" layer
-        delta = activator_.derivative(z_); delta.element_mul(error);
+        delta = activator_.derivative(output_); delta.element_mul(error);
         // dC/db = delta(l)
         nabla_b_.add(delta);
         // dC/dw = a(l-1) * delta(l)
-        delta_nabla_w = outer_product(delta, a_prev_);
+        delta_nabla_w = outer_product(delta, input_);
         nabla_w_.add(delta_nabla_w);
-        // gradient for the next layer w(l) * delta(l)
-        return transpose_dot21(weights_, delta);
+        // w(l) * delta(l)
+        delta_next = transpose_dot21(weights_, delta);
+        delta_next.reshape(input_shape_);
+        return delta_next;
     }
 
     virtual void update_weights(train_strategy_t<T> const &strategy) override {
@@ -66,7 +70,8 @@ private:
     array3d_t<T> bias_;
     activator_t<T> const &activator_;
     // calculation support
-    array3d_t<T> z_, a_prev_;
+    shape3d_t input_shape_;
+    array3d_t<T> output_, input_;
     array3d_t<T> nabla_w_;
     array3d_t<T> nabla_b_;
 };
