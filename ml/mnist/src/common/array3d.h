@@ -66,13 +66,15 @@ public:
     }
 
 public:
+    // slicing supports cases of negative indices
     array3d_t<T> slice(index3d_t const &start,
-                       index3d_t const &end) const {
-        shape3d_t shape(DIM(start.x(), end.x()),
-                        DIM(start.y(), end.y()),
-                        DIM(start.z(), end.z()));
+                       index3d_t const &end,
+                       index3d_t const &step=index3d_t(1, 1, 1)) const {
+        shape3d_t shape(DIM(start.x(), end.x(), step.x()),
+                        DIM(start.y(), end.y(), step.y()),
+                        DIM(start.z(), end.z(), step.z()));
         std::vector<T> v(shape.capacity(), T(0));
-        index3d_iterator it(start, end);
+        index3d_iterator it(start, end, step);
         for (size_t i = 0; it.is_valid(); ++it, ++i) {
             if (in_bounds(*it)) {
                 v[i] = v_[shape_.index(*it)];
@@ -81,7 +83,7 @@ public:
         return array3d_t<T>(shape, v);
     }
 
-    array3d_t<T> slice(index3d_t::dim d, size_t start, size_t end) const {
+    array3d_t<T> slice(dim_type d, size_t start, size_t end) const {
         index3d_t istart(0, 0, 0);
         index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
         return slice(istart.inc(d, start),
@@ -184,6 +186,26 @@ public:
             if (v_[i] > vmax) { vmax = v_[i]; }
         }
         return vmax;
+    }
+
+    array3d_t<T> flip_xyz() const {
+        array3d_t<T> copy(shape_, T(0));
+
+        const size_t x_size = shape_.x();
+        const size_t y_size = shape_.y();
+        const size_t z_size = shape_.z();
+
+        for (size_t z = 0; z < z_size; z++) {
+            for (size_t y = 0; y < y_size; y++) {
+                for (size_t x = 0; x < x_size; x++) {
+                    copy.at(x, y, z) = this->at(x_size - 1 - x,
+                                                y_size - 1 - y,
+                                                z_size - 1 - z);
+                }
+            }
+        }
+
+        return copy;
     }
 
 private:
