@@ -63,30 +63,30 @@ struct index3d_t: point3d_t<int> {
         point3d_t(other.v_)
     { }
 
-	index3d_t(std::array<int, 3> const &v) :
-		point3d_t(v)
-	{ }
+    index3d_t(std::array<int, 3> const &v) :
+        point3d_t(v)
+    { }
 
 public:
     inline index3d_t add(int x, int y, int z) const {
         return index3d_t(v_[0] + x, v_[1] + y, v_[2] + z);
     }
 
-	inline index3d_t add(index3d_t const &index) const {
-		return add(index.x(), index.y(), index.z());
-	}
+    inline index3d_t add(index3d_t const &index) const {
+        return add(index.x(), index.y(), index.z());
+    }
 
-	inline index3d_t inc(dim_type d, int a) const {
-		std::array<int, 3> v(v_);
-		v[(size_t)d] += a;
-		return index3d_t(v);
-	}
+    inline index3d_t inc(dim_type d, int a) const {
+        std::array<int, 3> v(v_);
+        v[(size_t)d] += a;
+        return index3d_t(v);
+    }
 
-	inline index3d_t set(dim_type d, int a) const {
-		std::array<int, 3> v(v_);
-		v[(size_t)d] = a;
-		return index3d_t(v);
-	}
+    inline index3d_t set(dim_type d, int a) const {
+        std::array<int, 3> v(v_);
+        v[(size_t)d] = a;
+        return index3d_t(v);
+    }
 };
 
 struct shape3d_t: point3d_t<int> {

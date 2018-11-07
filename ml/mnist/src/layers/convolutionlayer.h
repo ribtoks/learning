@@ -87,11 +87,11 @@ private:
         const int pad_x = get_left_padding();
         const int pad_y = get_top_padding();
 
-        const size_t fsize = filter_weights_.size();
+        const int fsize = filter_weights_.size();
         // perform convolution for each filter
-        for (size_t i = 0; i < fsize; i++) {
+        for (int i = 0; i < fsize; i++) {
             auto &filter = filter_weights_[i].slice();
-            auto &bias = filter_biases_[i];
+            auto &bias = filter_biases_[i](0);
             // 2D loop over the input and calculation convolution of input and current filter
             // convolution is S(i, j) = (I ∗ K)(i, j) = Sum[ I(m, n)K(i − m, j − n) ]
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
@@ -105,7 +105,7 @@ private:
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     // previous formula (w*x + b) is used with convolution instead of product
                     result(x, y, i) =
-                            bias(0) +
+                            bias +
                             dot<T>(
                                 input_.slice(
                                     index3d_t(xs, ys, 0),
@@ -133,11 +133,10 @@ private:
 
         const size_t fsize = filter_weights_.size();
         // calculate nabla_w for each filter
-        for (int i = 0; i < fsize; i++) {
-            auto &nabla_w = nabla_weights_[i];
-            auto &nabla_b = nabla_biases_[i](0);
-            auto &weights = filter_weights_[i];
-			auto delta_f = delta.slice(dim_type::Z, i, i);
+        for (int fi = 0; fi < fsize; fi++) {
+            auto &nabla_w = nabla_weights_[fi];
+            auto &nabla_b = nabla_biases_[fi](0);
+            auto delta_f = delta.slice(dim_type::Z, fi, fi);
 
             for (int z = 0; z < input_shape_.z(); z++) {
                 // convolution of input and filter gives us output (same as error size)
@@ -149,7 +148,7 @@ private:
                         int xs = x * stride_.x() - pad_x;
 
                         // dC/db = delta(l)
-                        nabla_b += delta(x, y, i);
+                        nabla_b += delta(x, y, fi);
                         // dC/dw = a(l-1) (x) delta(l)
                         nabla_w(x, y, z) +=
                                 dot<T>(
@@ -171,12 +170,13 @@ private:
         const int weight_pad_x = utils::get_left_padding(error_shape, filter_shape_, stride_.x());
         const int weight_pad_y = utils::get_top_padding(error_shape, filter_shape_, stride_.y());
 
-        // input gradient of next layer is scaled by weights of this layer
+        // input gradient of next layer is scaled by weights gradient of this layer
         // gradient for the next layer is delta(l) (*) rot180(w(l))
-        for (size_t i = 0; i < fsize; i++) {
-            auto &filter = filter_weights_[i].slice();
+        // so for delta we apply "full" convolution with filter
+        for (size_t fi = 0; fi < fsize; fi++) {
+            for (int z = 0; z < input_shape_.z(); z++) {\
+                auto &weights = filter_weights_[fi].slice(dim_type::Z, z, z);
 
-            for (int z = 0; z < input_shape_.z(); z++) {
                 // result of the convolution of delta and weights will be input size
                 for (int y = 0; y < input_shape_.y(); y++) {
                     int ys = y*stride_.y() - weight_pad_y;
@@ -187,11 +187,11 @@ private:
                         delta_next(x, y, z) =
                                 dot<T>(
                                     delta.slice(
-                                        index3d_t(xs, ys, z),
+                                        index3d_t(xs, ys, fi),
                                         index3d_t(xs + filter_shape_.x() - 1,
                                                   ys + filter_shape_.y() - 1,
-                                                  z)),
-                                    filter);
+                                                  fi)),
+                                    weights);
                     }
                 }
             }

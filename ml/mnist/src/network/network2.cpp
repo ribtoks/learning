@@ -26,16 +26,16 @@ void network2_t::train(network2_t::training_data const &data,
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
-            if (k++ % 10 == 0) { log("Batched indices %d out of %d", k, indices_batches.size()); }
+            if (k++ % 50 == 0) { log("Batched indices %d out of %d", k, indices_batches.size()); }
             update_mini_batch(data, indices, strategy);
         }
 
-        if (j % 2 == 0) {
+        //if (j % 2 == 0) {
             auto result = evaluate(data, eval_indices);
             log("Epoch %d: %d / %d", j, result, eval_indices.size());
-        } else {
-            log("Epoch %d ended", j);
-        }
+        //} else {
+        //    log("Epoch %d ended", j);
+        //}
     }
 
     auto result = evaluate(data, eval_indices);

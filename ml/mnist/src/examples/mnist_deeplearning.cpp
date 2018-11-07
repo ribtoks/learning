@@ -21,11 +21,15 @@ int main(int argc, char* argv[]) {
     std::string data_root(argv[1]);
     mnist_dataset_t mnist_dataset(data_root);
 
-    size_t mini_batch_size = 100;
+    size_t mini_batch_size = 10;
     double learning_rate = 0.01;
     double decay_rate = 20.0;
+    size_t filters_count = 5;
 
     auto training_data = mnist_dataset.training_data();
+    // reduce size for testing
+    training_data.resize(training_data.size()/10);
+
     activator_t<double> sigmoid_activator(sigmoid_v, sigmoid_derivative_v);
     // derivative returns 1 because it is cancelled out when using cross-entropy
     activator_t<double> softmax_activator(stable_softmax_v,
@@ -42,15 +46,15 @@ int main(int argc, char* argv[]) {
                         std::make_shared<convolution_layer_t<double>>(
                         shape_matrix(28, 28), // input size
                         shape_matrix(5, 5), // filter size
-                        20, // number of filters
+                        filters_count,
                         1, // stride length
                         padding_type::valid,
                         relu_activator),
                         std::make_shared<pooling_layer_t<double>>(
                         2, // window_size
                         2), // stride length
-                        std::make_shared<fully_connected_layer_t<double>>(20*12*12, 100, sigmoid_activator),
-                        std::make_shared<fully_connected_layer_t<double>>(100, 10, softmax_activator),
+                        std::make_shared<fully_connected_layer_t<double>>(filters_count*12*12, 30, sigmoid_activator),
+                        std::make_shared<fully_connected_layer_t<double>>(30, 10, softmax_activator),
                         std::make_shared<crossentropy_output_layer_t<double>>()}));
 
     size_t epochs = 60;

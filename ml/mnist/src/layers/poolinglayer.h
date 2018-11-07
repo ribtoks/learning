@@ -31,6 +31,7 @@ public:
             // 2D loop over convoluted image from each filter
             for (int y = 0; y < output_shape.y(); y++) {
                 int ys = y * stride_.y();
+
                 for (int x = 0; x < output_shape.x(); x++) {
                     int xs = x * stride_.x();
                     // pooling layer does max-pooling, selecting a maximum
@@ -41,8 +42,8 @@ public:
                                            index3d_t(xs + window_size_ - 1,
                                                      ys + window_size_ - 1,
                                                      z));
-                    result(x, y, z) = input_slice.max();
                     max_index_(x, y, z) = input_slice.argmax();
+                    result(x, y, z) = input_slice.at(max_index_(x, y, z));
                 }
             }
         }
@@ -59,6 +60,7 @@ public:
             // 2D loop over convoluted image from each filter
             for (int y = 0; y < error_shape.y(); y++) {
                 int ys = y * stride_.y();
+
                 for (int x = 0; x < error_shape.x(); x++) {
                     int xs = x * stride_.x();
 

@@ -70,18 +70,6 @@ public:
             return array3d_t<T>(shape_, v);
         }
 
-        T max() const {
-            index3d_iterator it = iterator();
-            T vmax = std::numeric_limits<T>::min();
-            for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (in_bounds(*it)) {
-                    T v = at(*it);
-                    if (v > vmax) { vmax = v; }
-                }
-            }
-            return vmax;
-        }
-
         index3d_t argmax() const {
             index3d_iterator it = iterator();
             index3d_t imax(*it);
@@ -124,12 +112,12 @@ public:
     array3d_t(shape3d_t const &shape, T mean, T stddev):
         shape_(shape)
     {
-        const size_t size = shape.capacity();
+        const int size = shape.capacity();
         std::default_random_engine generator;
         std::normal_distribution<T> distribution(mean, stddev);
 
         v_.reserve(size);
-        for (size_t i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             T number = distribution(generator);
             v_.push_back(number);
         }
@@ -176,9 +164,9 @@ public:
 
 	slice3d slice(dim_type d, int start, int end) {
 		index3d_t istart(0, 0, 0);
-		return slice(istart.inc(d, start),
-			index3d_t(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1)
-			.set(d, istart.v(d) + end));
+        index3d_t iend(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1);
+        return slice(istart.set(d, start),
+                     iend.set(d, end));
 	}
 
     array3d_t<T> clone() const {
@@ -186,7 +174,7 @@ public:
     }
 
     array3d_t<T> flatten() const {
-        return array3d_t(shape_row(size()), v_);
+        return array3d_t(shape_row((int)size()), v_);
     }
 
 private:
