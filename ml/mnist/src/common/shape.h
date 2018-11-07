@@ -74,9 +74,14 @@ struct index3d_t: point3d_t<int> {
     index3d_t(index3d_t const &other):
         point3d_t(other.v_)
     { }
+
+public:
+    inline index3d_t add(int x, int y, int z) {
+        return index3d_t(v_[0] + x, v_[1] + y, v_[2] + z);
+    }
 };
 
-struct shape3d_t: point3d_t<size_t> {
+struct shape3d_t: point3d_t<int> {
 private:
     enum dim {
         X=0,
@@ -85,7 +90,7 @@ private:
     };
 
 public:
-    shape3d_t(size_t x, size_t y, size_t z):
+    shape3d_t(int x, int y, int z):
         point3d_t(x, y, z)
     { }
 
@@ -111,8 +116,8 @@ public:
     }
 };
 
-static inline shape3d_t shape_row(size_t size) { return shape3d_t(size, 1, 1); }
-static inline shape3d_t shape_matrix(size_t height, size_t width) { return shape3d_t(width, height, 1); }
+static inline shape3d_t shape_row(int size) { return shape3d_t(size, 1, 1); }
+static inline shape3d_t shape_matrix(int height, int width) { return shape3d_t(width, height, 1); }
 
 class index3d_iterator {
 public:

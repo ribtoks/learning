@@ -26,8 +26,8 @@ public:
 public:
     convolution_layer_t(shape3d_t const &input_shape,
                         shape3d_t const &filter_shape,
-                        size_t filters_number,
-                        size_t stride_length,
+                        int filters_number,
+                        int stride_length,
                         padding_type padding,
                         activator_t<T> const &activator):
         input_shape_(input_shape),
@@ -46,7 +46,7 @@ public:
         nabla_weights_.reserve(filters_number);
         nabla_biases_.reserve(filters_number);
         // all neurons in each filter share same weights and bias
-        for (size_t i = 0; i < filters_number; i++) {
+        for (int i = 0; i < filters_number; i++) {
             filter_weights_.emplace_back(
                         filter_shape,
                         T(0), T(1)/sqrt((T)filter_shape.capacity()));
@@ -91,27 +91,29 @@ private:
         const size_t fsize = filter_weights_.size();
         // perform convolution for each filter
         for (size_t i = 0; i < fsize; i++) {
+            auto &filter = filter_weights_[i].slice();
+            auto &bias = filter_biases_(i);
             // 2D loop over the input and calculation convolution of input and current filter
             // convolution is S(i, j) = (I ∗ K)(i, j) = Sum[ I(m, n)K(i − m, j − n) ]
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
             // where I is input and K is kernel (filter weights)
-            for (size_t y = 0; y < output_shape.y(); y++) {
-                int yi = y * stride_.y() - pad_y;
+            for (int y = 0; y < output_shape.y(); y++) {
+                int ys = y * stride_.y() - pad_y;
 
-                for (size_t x = 0; x < output_shape.x(); x++) {
-                    int xi = x * stride_.x() - pad_x;
+                for (int x = 0; x < output_shape.x(); x++) {
+                    int xs = x * stride_.x() - pad_x;
                     // in this case cross-correlation (I(m, n)K(i + m, j + n)) is used
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     // previous formula (w*x + b) is used with convolution instead of product
                     result(x, y, i) =
-                            filter_biases_(i) +
+                            bias +
                             dot(
                                 input.slice(
-                                    index3d_t(xi, yi, 0),
-                                    index3d_t(xi + filter_shape_.x() - 1,
-                                              yi + filter_shape_.y() - 1,
+                                    index3d_t(xs, ys, 0),
+                                    index3d_t(xs + filter_shape_.x() - 1,
+                                              ys + filter_shape_.y() - 1,
                                               input_shape_.z() - 1)),
-                                filter_weights_[i]);
+                                filter);
                 }
             }
         }
@@ -134,56 +136,52 @@ private:
 
         const size_t fsize = filter_weights_.size();
         // calculate nabla_w for each filter
-        for (size_t i = 0; i < fsize; i++) {
+        for (int i = 0; i < fsize; i++) {
             auto &nabla_w = nabla_weights_[i];
-            auto &nabla_b = nabla_biases_[i];
+            auto &nabla_b = nabla_biases_[i].slice();
             auto &weights = filter_weights_[i];
 
-            for (int y = 0; y < filter_shape_.y(); y++) {
-                int yi = y - pad_y;
+            for (int z = 0; z < input_shape_.z(); z++) {
+                // convolution of input and filter gives us output (same as error size)
+                // and convolution of input and error gives us filter size
+                for (int y = 0; y < filter_shape_.y(); y++) {
+                    int ys = y * stride_.y() - pad_y;
 
-                for (int x = 0; x < filter_shape_.x(); x++) {
-                    int xi = x - pad_x;
+                    for (int x = 0; x < filter_shape_.x(); x++) {
+                        int xs = x * stride_.x() - pad_x;
 
-                    // dC/db = delta(l)
-                    nabla_b(i) += delta(x, y, i);
-                    // dC/dw = a(l-1) (x) delta(l)
-                    // weight (x, y) has affected the whole "error_shape" of values
-                    // therefore it's gradient should include their deltas
-                    nabla_w(x, y, i) +=
-                            dot(
-                                input_.slice(
-                                    index3d_t(xi, yi, 0),
-                                    index3d_t(xi + error_shape.x() - 1,
-                                              yi + error_shape.y() - 1,
-                                              error_shape.z() - 1)),
-                                delta);
+                        // dC/db = delta(l)
+                        nabla_b(i) += delta(x, y, i);
+                        // dC/dw = a(l-1) (x) delta(l)
+                        nabla_w(x, y, z) +=
+                                dot(
+                                    input_.slice(
+                                        index3d_t(xs, ys, z),
+                                        index3d_t(xs + error_shape.x() - 1,
+                                                  ys + error_shape.y() - 1,
+                                                  z)),
+                                    delta.slice());
+                    }
                 }
             }
         }
 
-        // gradient for the next layer = delta(l) (*) rot180(w(l)
+        // gradient for the next layer = delta(l) (*) rot180(w(l))
         // with 'full' convolution (http://www.johnloomis.org/ece563/notes/filter/conv/convolution.html)
+        // delta(l) is scaled by weights delta(l+1)
         array3d_t<T> delta_next(input_shape_, T(0));
-        // for each filter
+
+        // calculate gradient for the next layer
         for (size_t i = 0; i < fsize; i++) {
 
-            for (int z = 0; z < input_shape_.z(); z++) {
-                for (int y = 0; y < input_shape_.y(); y++) {
-                    int yi = y - weight_pad_y;
+            // result of the convolution of delta and weights will be input size
+            for (int y = 0; y < input_shape_.y(); y++) {
+                int ys = y*stride_.y() - weight_pad_y;
 
-                    for (int x = 0; x < input_shape_.x(); x++) {
-                        int xi = x - weight_pad_x;
+                for (int x = 0; x < input_shape_().x(); x++) {
+                    int xs = x*stride_.x() - weight_pad_x;
 
-                        delta_next(x, y, z) +=
-                                dot(
-                                    weights.slice(
-                                        index3d_t(xi, yi, 0),
-                                        index3d_t(xi + error_shape.x() - 1,
-                                                  yi + error_shape.y() - 1,
-                                                  error_shape.z() - 1)),
-                                    delta);
-                    }
+
                 }
             }
         }
@@ -196,18 +194,16 @@ private:
 
         double width = ceil(double(input_shape_.x()) / double(stride_.x()));
         double height = ceil(double(input_shape_.y()) / double(stride_.y()));
-        return shape3d_t((size_t)width, (size_t)height, filter_weights_.size());
+        return shape3d_t((int)width, (int)height, filter_weights_.size());
     }
 
     int get_top_padding() const {
         if (padding_ == padding_type::valid) { return 0; }
-
         return utils::get_top_padding(input_shape_, filter_shape_, stride_.y());
     }
 
     int get_left_padding() const {
         if (padding_ == padding_type::valid) { return 0; }
-
         return utils::get_left_padding(input_shape_, filter_shape_, stride_.x());
     }
 

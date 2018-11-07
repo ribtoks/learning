@@ -45,7 +45,19 @@ T inner_product(array3d_t<T> const &a, array3d_t<T> const &b) {
 }
 
 template<typename T>
-T dot(array3d_t<T> const &a, array3d_t<T> const &b) { return inner_product(a, b); }
+T dot(typename array3d_t<T>::slice3d const &a, typename array3d_t<T>::slice3d const &b) {
+    assert(a.shape().dim() == b.shape().dim());
+    assert(a.size() == b.size());
+
+    T sum = 0;
+    auto it_a = a.iterator();
+    auto it_b = b.iterator();
+    for (; it_a.is_valid() && it_b.is_valid(); ++it_a, ++it_b) {
+        sum += a.at(*it_a) * b.at(*it_b);
+    }
+
+    return sum;
+}
 
 template<typename T>
 array3d_t<T> dot21(array3d_t<T> const &m, array3d_t<T> const &v) {

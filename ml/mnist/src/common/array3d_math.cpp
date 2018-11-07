@@ -23,7 +23,7 @@ array3d_t<double> sigmoid_derivative_v(array3d_t<double> const &x) {
     return result;
 }
 
-array3d_t<double> stable_softmax_v(const array3d_t<double> &x) {
+array3d_t<double> stable_softmax_v(array3d_t<double> const &x) {
     array3d_t<double> result(x);
     const size_t size = result.size();
     double x_max = x.max();
