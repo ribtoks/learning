@@ -15,14 +15,13 @@
 
 #define FILTER_DIM(input, filter, stride) (((input) - (filter))/(stride) + 1)
 
+enum struct padding_type {
+    valid, // only positions where the kernel lies entirely within the image
+    same  // output is equal in size to the input
+};
+
 template<typename T>
 class convolution_layer_t: public layer_base_t<T> {
-public:
-    enum struct padding_type {
-        valid, // only positions where the kernel lies entirely within the image
-        same  // output is equal in size to the input
-    };
-
 public:
     convolution_layer_t(shape3d_t const &input_shape,
                         shape3d_t const &filter_shape,
@@ -58,12 +57,12 @@ public:
 
 public:
     virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
-        // TODO: add matrix multiplication implementation variation
+        // TODO: add matrix multiplication implementation
         return feedforward_loop(input);
     }
 
     virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
-        // TODO: add matrix multiplication implementation variation
+        // TODO: add matrix multiplication implementation
         return backpropagate_loop(error);
     }
 
@@ -78,7 +77,7 @@ public:
     }
 
 private:
-    array3d_t<T> feedforward_loop(array3d_t<T> const &input) override {
+    array3d_t<T> feedforward_loop(array3d_t<T> const &input) {
         assert(input.shape() == input_shape_);
 
         input_ = input.clone();
@@ -92,7 +91,7 @@ private:
         // perform convolution for each filter
         for (size_t i = 0; i < fsize; i++) {
             auto &filter = filter_weights_[i].slice();
-            auto &bias = filter_biases_(i);
+            auto &bias = filter_biases_[i];
             // 2D loop over the input and calculation convolution of input and current filter
             // convolution is S(i, j) = (I ∗ K)(i, j) = Sum[ I(m, n)K(i − m, j − n) ]
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
@@ -106,9 +105,9 @@ private:
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     // previous formula (w*x + b) is used with convolution instead of product
                     result(x, y, i) =
-                            bias +
-                            dot(
-                                input.slice(
+                            bias(0) +
+                            dot<T>(
+                                input_.slice(
                                     index3d_t(xs, ys, 0),
                                     index3d_t(xs + filter_shape_.x() - 1,
                                               ys + filter_shape_.y() - 1,
@@ -122,7 +121,7 @@ private:
         return activator_.activate(output_);
     }
 
-    array3d_t<T> backpropagate_loop(array3d_t<T> const &error) override {
+    array3d_t<T> backpropagate_loop(array3d_t<T> const &error) {
         // error shape was already transformed in the prev layer as delta(l+1)(*)rot180(w(l+1))
         assert(error.shape() == output_.shape());
         auto &error_shape = error.shape();
@@ -131,8 +130,6 @@ private:
 
         const int pad_x = get_left_padding();
         const int pad_y = get_top_padding();
-        const int weight_pad_x = utils::get_left_padding(error_shape, filter_shape_, stride_.x());
-        const int weight_pad_y = utils::get_top_padding(error_shape, filter_shape_, stride_.y());
 
         const size_t fsize = filter_weights_.size();
         // calculate nabla_w for each filter
@@ -154,7 +151,7 @@ private:
                         nabla_b(i) += delta(x, y, i);
                         // dC/dw = a(l-1) (x) delta(l)
                         nabla_w(x, y, z) +=
-                                dot(
+                                dot<T>(
                                     input_.slice(
                                         index3d_t(xs, ys, z),
                                         index3d_t(xs + error_shape.x() - 1,
@@ -166,22 +163,35 @@ private:
             }
         }
 
-        // gradient for the next layer = delta(l) (*) rot180(w(l))
-        // with 'full' convolution (http://www.johnloomis.org/ece563/notes/filter/conv/convolution.html)
-        // delta(l) is scaled by weights delta(l+1)
         array3d_t<T> delta_next(input_shape_, T(0));
 
-        // calculate gradient for the next layer
+        // use 'full' convolution (http://www.johnloomis.org/ece563/notes/filter/conv/convolution.html)
+        // so we need to set appropriate padding
+        const int weight_pad_x = utils::get_left_padding(error_shape, filter_shape_, stride_.x());
+        const int weight_pad_y = utils::get_top_padding(error_shape, filter_shape_, stride_.y());
+
+        // input gradient of next layer is scaled by weights of this layer
+        // gradient for the next layer is delta(l) (*) rot180(w(l))
         for (size_t i = 0; i < fsize; i++) {
+            auto &filter = filter_weights_[i].slice();
 
-            // result of the convolution of delta and weights will be input size
-            for (int y = 0; y < input_shape_.y(); y++) {
-                int ys = y*stride_.y() - weight_pad_y;
+            for (int z = 0; z < input_shape_.z(); z++) {
+                // result of the convolution of delta and weights will be input size
+                for (int y = 0; y < input_shape_.y(); y++) {
+                    int ys = y*stride_.y() - weight_pad_y;
 
-                for (int x = 0; x < input_shape_().x(); x++) {
-                    int xs = x*stride_.x() - weight_pad_x;
+                    for (int x = 0; x < input_shape_.x(); x++) {
+                        int xs = x*stride_.x() - weight_pad_x;
 
-
+                        delta_next(x, y, z) =
+                                dot<T>(
+                                    delta.slice(
+                                        index3d_t(xs, ys, z),
+                                        index3d_t(xs + filter_shape_.x() - 1,
+                                                  ys + filter_shape_.y() - 1,
+                                                  z)),
+                                    filter);
+                    }
                 }
             }
         }

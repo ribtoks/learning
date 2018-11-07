@@ -40,7 +40,7 @@ public:
     inline T v(dim_type d) const { return v_[(size_t)d]; }
 
     inline point3d_t<T> inc(dim_type d, T a) {
-        std::array<size_t, 3> v(v_);
+        std::array<T, 3> v(v_);
         v[(size_t)d] += a;
         return point3d_t<T>(v);
     }
@@ -76,7 +76,7 @@ struct index3d_t: point3d_t<int> {
     { }
 
 public:
-    inline index3d_t add(int x, int y, int z) {
+    inline index3d_t add(int x, int y, int z) const {
         return index3d_t(v_[0] + x, v_[1] + y, v_[2] + z);
     }
 };
@@ -105,13 +105,13 @@ public:
                 (v_[Z] > 1 ? 1 : 0);
     }
 
-    inline size_t capacity() const { return v_[X]*v_[Y]*v_[Z]; }
+    inline int capacity() const { return v_[X]*v_[Y]*v_[Z]; }
 
-    inline size_t index(size_t x, size_t y, size_t z) const {
+    inline int index(int x, int y, int z) const {
         return x + y*v_[X] + z*v_[X]*v_[Y];
     }
 
-    inline size_t index(point3d_t<size_t> const &i) const {
+    inline int index(point3d_t<int> const &i) const {
         return index(i.x(), i.y(), i.z());
     }
 };

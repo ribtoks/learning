@@ -6,9 +6,12 @@
 
 double sigmoid(double x);
 double sigmoid_derivative(double x);
+double relu(double x);
+double relu_derivative(double x);
 array3d_t<double> sigmoid_v(array3d_t<double> const &x);
 array3d_t<double> sigmoid_derivative_v(array3d_t<double> const &x);
 array3d_t<double> stable_softmax_v(array3d_t<double> const &x);
+array3d_t<double> relu_v(array3d_t<double> const &x);
 
 template<typename T>
 size_t argmax1d(array3d_t<T> const &v) {

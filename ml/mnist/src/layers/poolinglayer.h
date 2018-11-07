@@ -2,6 +2,7 @@
 #define POOLINGLAYER_H
 
 #include "layers/layer_base.h"
+#include "common/shape.h"
 
 #define POOL_DIM(input, pool, stride) (((input) - (pool))/(stride) + 1)
 
@@ -9,52 +10,81 @@ template <typename T>
 class pooling_layer_t: public layer_base_t<T> {
 public:
     pooling_layer_t(size_t window_size,
-                    size_t stride_length):
+                    int stride_length):
         window_size_(window_size),
-        stride_length_(stride_length)
+        input_shape_(0, 0, 0),
+        stride_(stride_length, stride_length, 0)
     { }
 
 public:
-    virtual layer_input_t<T> feedforward(layer_input_t<T> const &input) override {
-        auto &in_shape = input.data.shape();
-        array3d_t<T> result(
-                    shape3d_t(POOL_DIM(in_shape.x(), window_size_, stride_length_),
-                              POOL_DIM(in_shape.y(), window_size_, stride_length_),
-                              in_shape.z()),
-                    0);
-
-        // pooling layer does max-pooling, selecting a maximum
-        // activation within the bounds of it's "window"
+    virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
+        input_shape_ = input.shape();
+        // downsample input using window with step stride
+        shape3d_t output_shape(POOL_DIM(input_shape_.x(), window_size_, stride_.x()),
+                               POOL_DIM(input_shape_.y(), window_size_, stride_.y()),
+                               input_shape_.z());
+        array3d_t<T> result(output_shape, T(0));
+        max_index_ = array3d_t<index3d_t>(output_shape, index3d_t(0, 0, 0));
 
         // z axis corresponds to each filter from convolution layer
-        for (size_t z = 0; z < in_shape.z(); z++) {
+        for (int z = 0; z < output_shape.z(); z++) {
             // 2D loop over convoluted image from each filter
-            for (size_t y = 0; y <= in_shape.y() - window_size_; y += stride_length_) {
-                for (size_t x = 0; x < in_shape.x() - window_size_; x += stride_length_) {
-                    result(x/stride_length_, y/stride_length_, z) =
-                            input.data.slice(
-                                index3d_t(x, y, z),
-                                index3d_t(x + window_size_ - 1,
-                                          y + window_size_ - 1,
-                                          z)).max();
+            for (int y = 0; y < output_shape.y(); y++) {
+                int ys = y * stride_.y();
+                for (int x = 0; x < output_shape.x(); x++) {
+                    int xs = x * stride_.x();
+                    // pooling layer does max-pooling, selecting a maximum
+                    // activation within the bounds of it's "window"
+                    auto input_slice = const_cast<array3d_t<T>&>(input)
+                                       .slice(
+                                           index3d_t(xs, ys, z),
+                                           index3d_t(xs + window_size_ - 1,
+                                                     ys + window_size_ - 1,
+                                                     z));
+                    result(x, y, z) = input_slice.max();
+                    max_index_(x, y, z) = input_slice.argmax();
                 }
             }
         }
 
-        return layer_input_t<T>(result);
+        return result;
     }
 
-    virtual layer_error_t<T> backpropagate(layer_error_t<T> const &error) override {
+    virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
+        auto &error_shape = error.shape();
+        array3d_t<T> output(input_shape_, T(0));
 
+        // z axis corresponds to each filter from convolution layer
+        for (int z = 0; z < error_shape.z(); z++) {
+            // 2D loop over convoluted image from each filter
+            for (int y = 0; y < error_shape.y(); y++) {
+                int ys = y * stride_.y();
+                for (int x = 0; x < error_shape.x(); x++) {
+                    int xs = x * stride_.x();
+
+                    // same slice as input used for max() calculation
+                    output.slice(
+                                index3d_t(xs, ys, z),
+                                index3d_t(xs + window_size_ - 1,
+                                          ys + window_size_ - 1,
+                                          z))
+                            .at(max_index_(x, y, z)) = error(x, y, z);
+                }
+            }
+        }
+
+        return output;
     }
 
     virtual void update_weights(train_strategy_t<T> const &) override {
-
+        // no weight update is done in pooling layer
     }
 
 private:
     size_t window_size_;
-    size_t stride_length_;
+    shape3d_t input_shape_;
+    point3d_t<int> stride_;
+    array3d_t<index3d_t> max_index_;
 };
 
 #endif // POOLINGLAYER_H

@@ -36,8 +36,8 @@ set(SOURCES
     parsing/mnist_dataset.h
     parsing/mnist_dataset.cpp)
 
-#add_executable(example1 ${SOURCES} example1.cpp)
-add_executable(example2 ${SOURCES} example2.cpp)
+#add_executable(mnist_training ${SOURCES} examples/mnist_simple.cpp)
+#add_executable(mnist_training ${SOURCES} examples/mnist_fc_network.cpp)
+add_executable(mnist_training ${SOURCES} examples/mnist_deeplearning.cpp)
 
-#target_include_directories(example1 PRIVATE .)
-target_include_directories(example2 PRIVATE .)
+target_include_directories(mnist_training PRIVATE .)

@@ -18,7 +18,7 @@ class array3d_t {
 public:
     class slice3d {
     public:
-        slice3d(array3d_t<T> &array,
+        slice3d(std::reference_wrapper<array3d_t<T>> const &array,
                 index3d_t const &start,
                 index3d_t const &end):
             array_(array),
@@ -29,12 +29,24 @@ public:
             end_(end)
         { }
 
+        slice3d(slice3d const &other):
+            slice3d(other.array_, other.start_, other.end_)
+        {}
+
+        slice3d &operator=(slice3d const &other) = delete;
+
     public:
-        inline T &at(size_t x, size_t y, size_t z) { return array_.v_.at(array_index(x, y, z)); }
+        inline T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
+        inline T &operator()(size_t x, size_t y) { return at(x, y, 0); }
+        inline T &operator()(size_t x) { return at(x, 0, 0); }
+        inline T &at(size_t x, size_t y, size_t z) { return array_.get().v_.at(array_index(x, y, z)); }
         inline T &at(index3d_t const &index) { return at(index.x(), index.y(), index.z()); }
+        inline T const &at(size_t x, size_t y, size_t z) const { return array_.get().v_.at(array_index(x, y, z)); }
+        inline T const &at(index3d_t const &index) const { return at(index.x(), index.y(), index.z()); }
         inline index3d_iterator iterator(index3d_t const &step=index3d_t(1, 1, 1)) const {
             return index3d_iterator(start_, end_, step);
         }
+        shape3d_t const &shape() const { return shape_; }
         size_t size() const {
             return DIM(start_.x(), end_.x(), 1) *
                     DIM(start_.y(), end_.y(), 1) *
@@ -56,7 +68,7 @@ public:
             index3d_iterator it(start_, end_);
             T vmax = std::numeric_limits<T>::min();
             for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (array_.in_bounds(*it)) {
+                if (array_.get().in_bounds(*it)) {
                     T v = at(*it);
                     if (v > vmax) { vmax = v; }
                 }
@@ -64,23 +76,26 @@ public:
             return vmax;
         }
 
-        slice3d &add(slice3d const &other) {
-            assert(other.shape_ == shape_);
+        index3d_t argmax() const {
             index3d_iterator it(start_, end_);
-            index3d_iterator it_other = other.iterator();
-            for (; it.is_valid() && it_other.is_valid(); ++it, ++it_other) {
-                at(*it) += other.at(*it_other);
+            index3d_t imax(*it);
+            T vmax = std::numeric_limits<T>::min();
+            for (size_t i = 0; it.is_valid(); ++it, ++i) {
+                if (array_.get().in_bounds(*it)) {
+                    T v = at(*it);
+                    if (v > vmax) { vmax = v; imax = *it; }
+                }
             }
-            return *this;
+            return imax;
         }
 
     private:
         inline size_t array_index(size_t x, size_t y, size_t z) const {
-            return array_.shape_.index(start_.add(x, y, z));
+            return array_.get().shape_.index(start_.add(x, y, z));
         }
 
     private:
-        array3d_t<T> &array_;
+        std::reference_wrapper<array3d_t<T>> array_;
         shape3d_t shape_;
         index3d_t start_;
         index3d_t end_;
@@ -141,7 +156,7 @@ public:
     // slicing supports cases of negative indices
     slice3d slice(index3d_t const &start,
                   index3d_t const &end) {
-        return slice3d(*this, start, end);
+        return slice3d(std::ref(*this), start, end);
     }
 
     slice3d slice() {
@@ -168,14 +183,14 @@ public:
     inline std::vector<T> const &data() const { return v_; }
     inline shape3d_t const &shape() const { return shape_; }
     inline size_t size() const { return v_.size(); }
-    inline T &at(size_t x, size_t y, size_t z) { return v_.at(shape_.index(x, y, z)); }
-    inline T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
-    inline T &operator()(size_t x, size_t y) { return at(x, y, 0); }
-    inline T &operator()(size_t x) { return at(x, 0, 0); }
-    inline T const &at(size_t x, size_t y, size_t z) const { return v_.at(shape_.index(x, y, z)); }
-    inline T const &operator()(size_t x, size_t y, size_t z) const { return at(x, y, z); }
-    inline T const &operator()(size_t x, size_t y) const { return at(x, y, 0); }
-    inline T const &operator()(size_t x) const { return at(x, 0, 0); }
+    inline T &at(int x, int y, int z) { return v_.at(shape_.index(x, y, z)); }
+    inline T &operator()(int x, int y, int z) { return at(x, y, z); }
+    inline T &operator()(int x, int y) { return at(x, y, 0); }
+    inline T &operator()(int x) { return at(x, 0, 0); }
+    inline T const &at(int x, int y, int z) const { return v_.at(shape_.index(x, y, z)); }
+    inline T const &operator()(int x, int y, int z) const { return at(x, y, z); }
+    inline T const &operator()(int x, int y) const { return at(x, y, 0); }
+    inline T const &operator()(int x) const { return at(x, 0, 0); }
 
 public:
     array3d_t<T> &operator=(array3d_t<T> &&other) {

@@ -27,7 +27,7 @@ std::vector<std::tuple<array3d_t<double>, array3d_t<double>>> mnist_dataset_t::t
     for (;
          itImg != itImgEnd && itLbl != itLblEnd;
          ++itImg, ++itLbl) {
-        array3d_t<double> input(*itImg); input.mul(1.0 / 255.0);
+        array3d_t<double> input(*itImg); input.mul(1.0 / 255.0); input.reshape(shape_matrix(28, 28));
         array3d_t<double> result(shape_row(10), 0.0); result(*itLbl) = 1.0;
 
         data.emplace_back(std::make_tuple(std::move(input), std::move(result)));
