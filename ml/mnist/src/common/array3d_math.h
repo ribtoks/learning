@@ -56,7 +56,7 @@ T dot(typename array3d_t<T>::slice3d const &a, typename array3d_t<T>::slice3d co
     auto it_a = a.iterator();
     auto it_b = b.iterator();
     for (; it_a.is_valid() && it_b.is_valid(); ++it_a, ++it_b) {
-        sum += a.at(*it_a) * b.at(*it_b);
+        sum += a.at(it_a) * b.at(it_b);
     }
 
     return sum;

@@ -135,8 +135,9 @@ private:
         // calculate nabla_w for each filter
         for (int i = 0; i < fsize; i++) {
             auto &nabla_w = nabla_weights_[i];
-            auto &nabla_b = nabla_biases_[i].slice();
+            auto &nabla_b = nabla_biases_[i](0);
             auto &weights = filter_weights_[i];
+			auto delta_f = delta.slice(dim_type::Z, i, i);
 
             for (int z = 0; z < input_shape_.z(); z++) {
                 // convolution of input and filter gives us output (same as error size)
@@ -148,7 +149,7 @@ private:
                         int xs = x * stride_.x() - pad_x;
 
                         // dC/db = delta(l)
-                        nabla_b(i) += delta(x, y, i);
+                        nabla_b += delta(x, y, i);
                         // dC/dw = a(l-1) (x) delta(l)
                         nabla_w(x, y, z) +=
                                 dot<T>(
@@ -157,7 +158,7 @@ private:
                                         index3d_t(xs + error_shape.x() - 1,
                                                   ys + error_shape.y() - 1,
                                                   z)),
-                                    delta.slice());
+                                    delta_f);
                     }
                 }
             }

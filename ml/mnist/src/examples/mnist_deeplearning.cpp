@@ -21,8 +21,8 @@ int main(int argc, char* argv[]) {
     std::string data_root(argv[1]);
     mnist_dataset_t mnist_dataset(data_root);
 
-    size_t mini_batch_size = 10;
-    double learning_rate = 0.1;
+    size_t mini_batch_size = 100;
+    double learning_rate = 0.01;
     double decay_rate = 20.0;
 
     auto training_data = mnist_dataset.training_data();
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
                         relu_activator),
                         std::make_shared<pooling_layer_t<double>>(
                         2, // window_size
-                        1), // stride length
+                        2), // stride length
                         std::make_shared<fully_connected_layer_t<double>>(20*12*12, 100, sigmoid_activator),
                         std::make_shared<fully_connected_layer_t<double>>(100, 10, softmax_activator),
                         std::make_shared<crossentropy_output_layer_t<double>>()}));

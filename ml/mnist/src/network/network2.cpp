@@ -22,9 +22,11 @@ void network2_t::train(network2_t::training_data const &data,
     // generate indices from 1 to the number of inputs
     std::iota(eval_indices.begin(), eval_indices.end(), training_size);
 
+    size_t k = 0;
     for (size_t j = 0; j < epochs; j++) {
         auto indices_batches = batch_indices(training_size, minibatch_size);
         for (auto &indices: indices_batches) {
+            if (k++ % 10 == 0) { log("Batched indices %d out of %d", k, indices_batches.size()); }
             update_mini_batch(data, indices, strategy);
         }
 

@@ -22,9 +22,9 @@ public:
                 index3d_t const &start,
                 index3d_t const &end):
             array_(array),
-            shape_(DIM(end.x(), start.x(), 1),
-                   DIM(end.y(), start.y(), 1),
-                   DIM(end.z(), start.z(), 1)),
+            shape_(DIM(start.x(), end.x(), 1),
+                   DIM(start.y(), end.y(), 1),
+                   DIM(start.z(), end.z(), 1)),
             start_(start),
             end_(end)
         { }
@@ -39,12 +39,18 @@ public:
         inline T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
         inline T &operator()(size_t x, size_t y) { return at(x, y, 0); }
         inline T &operator()(size_t x) { return at(x, 0, 0); }
-        inline T &at(size_t x, size_t y, size_t z) { return array_.get().v_.at(array_index(x, y, z)); }
+        inline T &at(int x, int y, int z) { return array_.get().v_.at(array_index(x, y, z)); }
         inline T &at(index3d_t const &index) { return at(index.x(), index.y(), index.z()); }
-        inline T const &at(size_t x, size_t y, size_t z) const { return array_.get().v_.at(array_index(x, y, z)); }
+        inline T const &at(int x, int y, int z) const { return array_.get().v_.at(array_index(x, y, z)); }
         inline T const &at(index3d_t const &index) const { return at(index.x(), index.y(), index.z()); }
+		inline T at(index3d_iterator const &it) const {
+			return in_bounds(*it) ? at(*it) : T(0);
+		}
         inline index3d_iterator iterator(index3d_t const &step=index3d_t(1, 1, 1)) const {
-            return index3d_iterator(start_, end_, step);
+            return index3d_iterator(
+				index3d_t(0, 0, 0), 
+				index3d_t(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1), 
+				step);
         }
         shape3d_t const &shape() const { return shape_; }
         size_t size() const {
@@ -57,7 +63,7 @@ public:
             std::vector<T> v(this->size(), T(0));
             index3d_iterator it(start_, end_);
             for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (array_.in_bounds(*it)) {
+                if (in_bounds(*it)) {
                     v[i] = at(*it);
                 }
             }
@@ -65,10 +71,10 @@ public:
         }
 
         T max() const {
-            index3d_iterator it(start_, end_);
+            index3d_iterator it = iterator();
             T vmax = std::numeric_limits<T>::min();
             for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (array_.get().in_bounds(*it)) {
+                if (in_bounds(*it)) {
                     T v = at(*it);
                     if (v > vmax) { vmax = v; }
                 }
@@ -77,11 +83,11 @@ public:
         }
 
         index3d_t argmax() const {
-            index3d_iterator it(start_, end_);
+            index3d_iterator it = iterator();
             index3d_t imax(*it);
             T vmax = std::numeric_limits<T>::min();
             for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (array_.get().in_bounds(*it)) {
+                if (in_bounds(*it)) {
                     T v = at(*it);
                     if (v > vmax) { vmax = v; imax = *it; }
                 }
@@ -90,9 +96,13 @@ public:
         }
 
     private:
-        inline size_t array_index(size_t x, size_t y, size_t z) const {
+        inline size_t array_index(int x, int y, int z) const {
             return array_.get().shape_.index(start_.add(x, y, z));
         }
+
+		inline bool in_bounds(index3d_t const &index) const {
+			return array_.get().in_bounds(start_.add(index));
+		}
 
     private:
         std::reference_wrapper<array3d_t<T>> array_;
@@ -163,6 +173,13 @@ public:
         return slice(index3d_t(0, 0, 0),
                      index3d_t(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1));
     }
+
+	slice3d slice(dim_type d, int start, int end) {
+		index3d_t istart(0, 0, 0);
+		return slice(istart.inc(d, start),
+			index3d_t(shape_.x() - 1, shape_.y() - 1, shape_.z() - 1)
+			.set(d, istart.v(d) + end));
+	}
 
     array3d_t<T> clone() const {
         return array3d_t(*this);
