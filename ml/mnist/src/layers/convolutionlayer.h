@@ -11,7 +11,7 @@
 #include "common/utils.h"
 #include "layers/layer_base.h"
 #include "network/activator.h"
-#include "strategy/train_strategy.h"
+#include "optimizer/optimizer.h"
 
 #define FILTER_DIM(input, filter, stride) (((input) - (filter))/(stride) + 1)
 
@@ -57,27 +57,6 @@ public:
 
 public:
     virtual array3d_t<T> feedforward(array3d_t<T> const &input) override {
-        // TODO: add matrix multiplication implementation
-        return feedforward_loop(input);
-    }
-
-    virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
-        // TODO: add matrix multiplication implementation
-        return backpropagate_loop(error);
-    }
-
-    virtual void update_weights(train_strategy_t<T> const &strategy) override {
-        const size_t size = filter_weights_.size();
-        for (size_t i = 0; i < size; i++) {
-            strategy.update_weights(filter_weights_[i], nabla_weights_[i]);
-            strategy.update_bias(filter_biases_[i], nabla_biases_[i]);
-            nabla_weights_[i].reset(0);
-            nabla_biases_[i].reset(0);
-        }
-    }
-
-private:
-    array3d_t<T> feedforward_loop(array3d_t<T> const &input) {
         assert(input.shape() == input_shape_);
 
         input_ = input.clone();
@@ -89,9 +68,9 @@ private:
 
         const int fsize = filter_weights_.size();
         // perform convolution for each filter
-        for (int i = 0; i < fsize; i++) {
-            auto &filter = filter_weights_[i].slice();
-            auto &bias = filter_biases_[i](0);
+        for (int fi = 0; fi < fsize; fi++) {
+            auto filter = filter_weights_[fi].slice();
+            auto &bias = filter_biases_[fi](0);
             // 2D loop over the input and calculation convolution of input and current filter
             // convolution is S(i, j) = (I ∗ K)(i, j) = Sum[ I(m, n)K(i − m, j − n) ]
             // which is commutative i.e. (I ∗ K)(i, j) = Sum[ I(i - m, j - n)K(m, n) ]
@@ -104,7 +83,7 @@ private:
                     // in this case cross-correlation (I(m, n)K(i + m, j + n)) is used
                     // (kernel is not rot180() flipped for the convolution, not commutative)
                     // previous formula (w*x + b) is used with convolution instead of product
-                    result(x, y, i) =
+                    result(x, y, fi) =
                             bias +
                             dot<T>(
                                 input_.slice(
@@ -121,10 +100,11 @@ private:
         return activator_.activate(output_);
     }
 
-    array3d_t<T> backpropagate_loop(array3d_t<T> const &error) {
+    virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
         // error shape was already transformed in the prev layer as delta(l+1)(*)rot180(w(l+1))
         assert(error.shape() == output_.shape());
         auto &error_shape = error.shape();
+        // gradietns with regards to input of this layer
         array3d_t<T> delta;
         delta = activator_.derivative(output_); delta.element_mul(error);
 
@@ -136,7 +116,7 @@ private:
         for (int fi = 0; fi < fsize; fi++) {
             auto &nabla_w = nabla_weights_[fi];
             auto &nabla_b = nabla_biases_[fi](0);
-            auto delta_f = delta.slice(dim_type::Z, fi, fi);
+            auto delta_fi = delta.slice(dim_type::Z, fi, fi);
 
             for (int z = 0; z < input_shape_.z(); z++) {
                 // convolution of input and filter gives us output (same as error size)
@@ -157,7 +137,7 @@ private:
                                         index3d_t(xs + error_shape.x() - 1,
                                                   ys + error_shape.y() - 1,
                                                   z)),
-                                    delta_f);
+                                    delta_fi);
                     }
                 }
             }
@@ -174,8 +154,8 @@ private:
         // gradient for the next layer is delta(l) (*) rot180(w(l))
         // so for delta we apply "full" convolution with filter
         for (size_t fi = 0; fi < fsize; fi++) {
-            for (int z = 0; z < input_shape_.z(); z++) {\
-                auto &weights = filter_weights_[fi].slice(dim_type::Z, z, z);
+            for (int z = 0; z < input_shape_.z(); z++) {
+                auto weights = filter_weights_[fi].slice(dim_type::Z, z, z);
 
                 // result of the convolution of delta and weights will be input size
                 for (int y = 0; y < input_shape_.y(); y++) {
@@ -200,6 +180,17 @@ private:
         return delta_next;
     }
 
+    virtual void update_weights(optimizer_t<T> const &strategy) override {
+        const size_t size = filter_weights_.size();
+        for (size_t i = 0; i < size; i++) {
+            strategy.update_weights(filter_weights_[i], nabla_weights_[i]);
+            strategy.update_bias(filter_biases_[i], nabla_biases_[i]);
+            nabla_weights_[i].reset(0);
+            nabla_biases_[i].reset(0);
+        }
+    }
+
+private:
     shape3d_t get_output_shape() const {
         if (padding_ == padding_type::valid) { return conv_shape_; }
 

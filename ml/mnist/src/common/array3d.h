@@ -37,7 +37,6 @@ public:
 
     public:
         inline T &operator()(size_t x, size_t y, size_t z) { return at(x, y, z); }
-        inline T &operator()(size_t x, size_t y) { return at(x, y, 0); }
         inline T &operator()(size_t x) { return at(x, 0, 0); }
         inline T &at(int x, int y, int z) { return array_.get().v_.at(array_index(x, y, z)); }
         inline T &at(index3d_t const &index) { return at(index.x(), index.y(), index.z()); }
@@ -53,22 +52,6 @@ public:
 				step);
         }
         shape3d_t const &shape() const { return shape_; }
-        size_t size() const {
-            return DIM(start_.x(), end_.x(), 1) *
-                    DIM(start_.y(), end_.y(), 1) *
-                    DIM(start_.z(), end_.z(), 1);
-        }
-
-        array3d_t<T> to_array() const {
-            std::vector<T> v(this->size(), T(0));
-            index3d_iterator it(start_, end_);
-            for (size_t i = 0; it.is_valid(); ++it, ++i) {
-                if (in_bounds(*it)) {
-                    v[i] = at(*it);
-                }
-            }
-            return array3d_t<T>(shape_, v);
-        }
 
         index3d_t argmax() const {
             index3d_iterator it = iterator();
@@ -141,7 +124,7 @@ public:
 
     template<typename Q>
     array3d_t(const std::vector<Q> &other):
-        shape_(other.size(), 1, 1)
+        shape_(shape_row(other.size()))
     {
         const size_t size = other.size();
         v_.resize(size);

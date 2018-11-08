@@ -3,7 +3,7 @@
 
 #include "network/activator.h"
 #include "layers/layer_base.h"
-#include "strategy/train_strategy.h"
+#include "optimizer/optimizer.h"
 
 template <typename T>
 class crossentropy_output_layer_t : public layer_base_t<T> {
@@ -24,7 +24,7 @@ public:
         return last_activation_;
     }
 
-    virtual void update_weights(train_strategy_t<T> const &) override {}
+    virtual void update_weights(optimizer_t<T> const &) override {}
 
 private:
     array3d_t<T> last_activation_;

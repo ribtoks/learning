@@ -2,12 +2,12 @@
 #define SDG_ALGO_H
 
 #include "common/array3d.h"
-#include "strategy/train_strategy.h"
+#include "optimizer/optimizer.h"
 
 template <typename T>
-class sdg_strategy_t: public train_strategy_t<T> {
+class sdg_optimizer_t: public optimizer_t<T> {
 public:
-    sdg_strategy_t(size_t minibatch_size,
+    sdg_optimizer_t(size_t minibatch_size,
                     size_t input_size,
                     T decay_rate,
                     T learning_rate):

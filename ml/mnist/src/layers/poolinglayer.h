@@ -54,10 +54,11 @@ public:
     virtual array3d_t<T> backpropagate(array3d_t<T> const &error) override {
         auto &error_shape = error.shape();
         array3d_t<T> output(input_shape_, T(0));
+        assert(error.shape() == max_index_.shape());
 
         // z axis corresponds to each filter from convolution layer
         for (int z = 0; z < error_shape.z(); z++) {
-            // 2D loop over convoluted image from each filter
+            // 2D loop same as in feedforward()
             for (int y = 0; y < error_shape.y(); y++) {
                 int ys = y * stride_.y();
 
@@ -78,7 +79,7 @@ public:
         return output;
     }
 
-    virtual void update_weights(train_strategy_t<T> const &) override {
+    virtual void update_weights(optimizer_t<T> const &) override {
         // no weight update is done in pooling layer
     }
 

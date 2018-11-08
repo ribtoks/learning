@@ -5,9 +5,9 @@ template <typename T>
 class array3d_t;
 
 template <typename T>
-class train_strategy_t {
+class optimizer_t {
 public:
-    virtual ~train_strategy_t() {}
+    virtual ~optimizer_t() {}
     virtual void update_bias(array3d_t<T> &b, array3d_t<T> &nabla_b) const = 0;
     virtual void update_weights(array3d_t<T> &w, array3d_t<T> &nabla_w) const = 0;
 };

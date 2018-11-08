@@ -6,7 +6,7 @@
 #include <tuple>
 #include <memory>
 
-#include "strategy/train_strategy.h"
+#include "optimizer/optimizer.h"
 #include "layers/fullyconnectedlayer.h"
 #include "network/activator.h"
 
@@ -22,7 +22,7 @@ public:
 
 public:
     void train(training_data const &data,
-               train_strategy_t<data_type> const &strategy,
+               optimizer_t<data_type> const &strategy,
                size_t epochs,
                size_t minibatch_size);
 
@@ -37,7 +37,7 @@ private:
     // iteration of gradient descent using mini_batch of inputs and outputs
     void update_mini_batch(training_data const &data,
                            std::vector<size_t> const &indices,
-                           train_strategy_t<network2_t::data_type> const &strategy);
+                           optimizer_t<network2_t::data_type> const &strategy);
 
     // runs a loop of propagation of inputs and backpropagation of errors
     // back to the beginning with weights and biases updates as a result

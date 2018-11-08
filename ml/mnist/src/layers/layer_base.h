@@ -4,7 +4,7 @@
 #include "common/array3d.h"
 
 template<typename T>
-class train_strategy_t;
+class optimizer_t;
 
 template<typename T>
 class layer_base_t {
@@ -14,7 +14,7 @@ public:
     virtual array3d_t<T> feedforward(array3d_t<T> const &input) = 0;
     // error is the gradient with regards to input
     virtual array3d_t<T> backpropagate(array3d_t<T> const &error) = 0;
-    virtual void update_weights(train_strategy_t<T> const &) = 0;
+    virtual void update_weights(optimizer_t<T> const &) = 0;
 };
 
 

@@ -21,8 +21,8 @@ set(SOURCES
     common/log.cpp
     common/utils.h
     common/utils.cpp
-    strategy/sdg_strategy.h
-    strategy/train_strategy.h
+    optimizer/sdg_optimizer.h
+    optimizer/optimizer.h
     network/network2.h
     network/network2.cpp
 #    network/network1.h

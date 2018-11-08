@@ -49,8 +49,7 @@ T inner_product(array3d_t<T> const &a, array3d_t<T> const &b) {
 
 template<typename T>
 T dot(typename array3d_t<T>::slice3d const &a, typename array3d_t<T>::slice3d const &b) {
-    assert(a.shape().dim() == b.shape().dim());
-    assert(a.size() == b.size());
+    assert(a.shape() == b.shape());
 
     T sum = 0;
     auto it_a = a.iterator();

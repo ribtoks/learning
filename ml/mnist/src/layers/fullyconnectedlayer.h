@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "strategy/train_strategy.h"
+#include "optimizer/optimizer.h"
 #include "common/array3d.h"
 #include "common/array3d_math.h"
 #include "common/log.h"
@@ -56,7 +56,7 @@ public:
         return delta_next;
     }
 
-    virtual void update_weights(train_strategy_t<T> const &strategy) override {
+    virtual void update_weights(optimizer_t<T> const &strategy) override {
         strategy.update_bias(bias_, nabla_b_);
         strategy.update_weights(weights_, nabla_w_);
 		nabla_b_.reset(0);
