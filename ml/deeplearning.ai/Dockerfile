@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-ARG ML_USER="ktar"
+ARG ML_USER="ml_user"
 
 USER root
 
@@ -51,5 +51,3 @@ VOLUME /notebooks
 
 # Start the jupyter notebook with config from jupyter_notebook_config.py
 ENTRYPOINT ["jupyter", "lab"]
-
-#RUN sudo chown -R $ML_USER /home/$ML_USER/.local/share/jupyter
