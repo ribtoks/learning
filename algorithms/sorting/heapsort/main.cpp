@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <utility>
 
-// tree structure
+// tree structure (non-decreasing heap property)
 // arr[k] >= arr[2*k + 1]
 // arr[k] >= arr[2*k + 2]
 
@@ -24,31 +24,36 @@ void heapsort(T arr[], size_t sz, int (*cmp_T)(const T&, const T&)) {
    }
 }
 
+// restore heap property in segment [first, last]
 template<typename T>
 void rebuild(T arr[], int first, int last, int (*cmp_T)(const T&, const T&)) {
    int k;
    // all children are in [first, last]
    while (2*first + 2 <= last) {
+      // select maximum of two children
       if (cmp_T(arr[2*first + 1], arr[2*first + 2]) < 0) {
          k = 2*first + 2;
       } else {
          k = 2*first + 1;
       }
-      // if child is greater than his father
+      // if child is greater than it's parent
       if (cmp_T(arr[first], arr[k]) < 0) {
+         // swap it with the parent
          T temp = arr[first];
          arr[first] = arr[k];
          arr[k] = temp;
 
          // rebuild son subtree
          first = k;
-      } else
-         // father is greater than it's children
+      } else {
+         // father is greater than it's children - nothing to do
          break;
+      }
    }
 
    // arr[first] has one more child
    if (2*first + 1 == last) {
+      // swap them if it breaks heap property
       if (cmp_T(arr[2*first + 1], arr[last]) < 0) {
          T temp = arr[2*first + 1];
          arr[2*first + 1] = arr[last];
@@ -60,7 +65,7 @@ void rebuild(T arr[], int first, int last, int (*cmp_T)(const T&, const T&)) {
 template<typename T>
 void build(T arr[], size_t sz, int (*cmp_T)(const T&, const T&)) {
    // can start building of a tree from second half of array
-   // cause of indices arr[size/2] has no childs in array
+   // cause of indices arr[size/2] have no children in array (2*[size/2] >= size)
    for (int i = sz / 2 - 1; i >= 0; --i) {
       rebuild(arr, i, sz - 1, cmp_T);
    }
