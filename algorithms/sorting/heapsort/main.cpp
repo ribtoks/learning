@@ -9,7 +9,10 @@
 
 template<typename T>
 void heapsort(T arr[], size_t sz, int (*cmp_T)(const T&, const T&)) {
+   // build a heap out of the array
    build(arr, sz, cmp_T);
+   
+   // sort the heap
    for (int i = sz - 1; i >= 0; --i) {
       // push maximum element from root
       // into the bottom of tree
