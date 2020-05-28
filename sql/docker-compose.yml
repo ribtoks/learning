@@ -1,0 +1,43 @@
+version: "3"
+services:
+  db:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile-alpine
+    image: postgres-pgfiddle
+    #image: postgres:11.1-alpine
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    env_file: ./postgres/my-postgres.env
+    networks:
+      pgnetwork:
+        # aka hostname for pgadmin
+        aliases:
+          - pgfiddle
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pglogs:/pglogs
+    shm_size: '256MB'
+    restart: unless-stopped
+  pgadm:
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgfiddle@localhost}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-pgfiddle}
+    restart: unless-stopped
+    networks:
+       - pgnetwork
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+
+networks:
+  pgnetwork:
+    driver: bridge
+
+volumes:
+  pgadmin:
+  pgdata:
+  pglogs:

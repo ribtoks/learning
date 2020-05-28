@@ -1,0 +1,11 @@
+FROM postgres:11.1-alpine
+
+# to access logs on mac execute
+# screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty
+
+RUN mkdir /pglogs
+RUN chown postgres:postgres /pglogs
+COPY ./my-postgres.conf /etc/postgresql/postgresql.conf
+COPY ./my-init.sh /docker-entrypoint-initdb.d/
+
+USER postgres
