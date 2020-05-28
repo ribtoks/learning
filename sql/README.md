@@ -15,9 +15,8 @@ Password: `pgfiddle`
 
 ## Add new connection
 
-![Connection](sql/screenshots/connect.png)
+![Connection](https://github.com/ribtoks/learning/raw/master/sql/screenshots/connect.png)
 
 ## Open query editor from Tools menu
 
-
-![Connection](sql/screenshots/pgadmin.png)
+![Query editor](https://github.com/ribtoks/learning/raw/master/sql/screenshots/pgadmin.png)
