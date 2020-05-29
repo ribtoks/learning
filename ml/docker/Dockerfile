@@ -8,6 +8,7 @@ USER root
 # Then install python3 and pip3
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     python3 \
+    python3-dev \
     python3-pip \
     python3-setuptools \
     git \
@@ -15,6 +16,8 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
     wget \
     bzip2 \
     ca-certificates \
+    gcc \
+    g++ \
     sudo \
     nodejs \
     locales
